@@ -12,6 +12,7 @@ app.include_router(health.router)
 app.include_router(wagons.router)
 
 
+
 @app.get("/")
 async def root():
     return {
