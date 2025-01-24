@@ -7,15 +7,16 @@ router = APIRouter(
     tags=["wagons"]
 )
 
-@router.get("/{wagon_id}")
-async def get_wagon(wagon_id: int):
+@router.get("")
+async def get_wagons():
+    """Get all wagons data"""
     try:
-        file_path = Path(f"data/wagons/wagon-{wagon_id}.json")
+        file_path = Path("data/wagons.json")
         if not file_path.exists():
-            raise HTTPException(status_code=404, detail=f"Wagon {wagon_id} not found")
+            raise HTTPException(status_code=404, detail="Wagons data not found")
             
         with open(file_path, "r") as f:
-            wagon_data = json.load(f)
-        return wagon_data
+            wagons_data = json.load(f)
+        return wagons_data
     except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="Error reading wagon data") 
+        raise HTTPException(status_code=500, detail="Error reading wagons data") 

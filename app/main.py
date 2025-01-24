@@ -17,6 +17,6 @@ async def root():
         "message": "Welcome to Game Jam API",
         "docs_url": "/docs",
         "health_check": "/health",
-        "wagons_endpoint": "/api/wagons/{wagon_id}"
+        "wagons_endpoint": "/api/wagons"
     }
 
