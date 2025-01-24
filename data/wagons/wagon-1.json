@@ -1,0 +1,29 @@
+{
+  "wagon": {
+    "id": 1,
+    "passcode": "gamejam"
+  },
+  "people": [
+    {
+      "uid": "wagon-1-player-1",
+      "position": [0.5, 0.5],
+      "rotation": [0, 0],
+      "character": "main",
+      "model_type": "regular"
+    },
+    {
+      "uid": "wagon-1-player-2",
+      "position": [0.25, 0.25],
+      "rotation": [0, 0],
+      "character": "mob",
+      "model_type": "regular"
+    },
+    {
+      "uid": "wagon-1-player-3",
+      "position": [0.75, 0.55],
+      "rotation": [0, 0],
+      "character": "citizen",
+      "model_type": "regular"
+    }
+  ]
+}
