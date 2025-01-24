@@ -17,7 +17,7 @@ jobs:
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
-    environment: production
+    environment: dev
 
     permissions:
       contents: read
@@ -42,7 +42,7 @@ jobs:
           echo "Dockerfile location:"
           find . -name "Dockerfile"
 
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
