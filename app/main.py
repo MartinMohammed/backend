@@ -20,3 +20,4 @@ async def root():
         "health_check": "/health",
         "wagons_endpoint": "/api/wagons/{wagon_id}"
     }
+
