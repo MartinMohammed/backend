@@ -1,10 +1,8 @@
 {
   "wagons": [
     {
-      "wagon": {
-        "id": 0,
-        "passcode": "gamejam"
-      },
+      "id": 0,
+      "passcode": "gamejam",
       "people": [
         {
           "uid": "wagon-0-player-1",
@@ -30,10 +28,8 @@
       ]
     },
     {
-      "wagon": {
-        "id": 1,
-        "passcode": "gamejam676"
-      },
+      "id": 1,
+      "passcode": "gamejam676",
       "people": [
         {
           "uid": "wagon-1-player-1",
