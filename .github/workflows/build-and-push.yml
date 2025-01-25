@@ -77,12 +77,21 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    env:
+      AWS_REGION: eu-central-1
+      BASE_NAME: game-jam
+      ECR_REGISTRY: ${{ needs.build-and-push.outputs.ecr-registry }}
+      ECR_REPOSITORY: ${{ needs.build-and-push.outputs.ecr-repository }}
+      IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
+
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set environment variables
-        id: env-vars
         run: |
-          # Set environment name based on branch
-          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+          # Determine environment based on branch
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
             echo "ENV=prod" >> $GITHUB_ENV
             echo "IMAGE_TAG=prod" >> $GITHUB_ENV
           else
@@ -90,18 +99,20 @@ jobs:
             echo "IMAGE_TAG=dev" >> $GITHUB_ENV
           fi
 
-          # Set resource names using the same pattern as Terraform
+          # Set resource names
           echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
           echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
           echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
           echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ env.AWS_REGION }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Download task definition
         run: |
@@ -109,27 +120,27 @@ jobs:
             --task-definition ${{ env.TASK_FAMILY }} \
             --query taskDefinition > task-definition.json
 
-      - name: Update container image
+      - name: Update container image in task definition
         run: |
-          # Update the container image in task definition
-          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}-${{ env.ENV }}:${{ env.ENV }}" \
+          jq --arg IMAGE "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}" \
             '.containerDefinitions[0].image = $IMAGE' \
             task-definition.json > updated-task-definition.json
 
       - name: Register new task definition
+        id: register-task
         run: |
-          aws ecs register-task-definition \
-            --cli-input-json file://updated-task-definition.json
+          register_output=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json)
+          echo "task_arn=$(echo $register_output | jq -r '.taskDefinition.taskDefinitionArn')" >> $GITHUB_OUTPUT
 
-      - name: Update ECS service
+      - name: Update ECS service with new task definition
         run: |
           aws ecs update-service \
             --cluster ${{ env.CLUSTER_NAME }} \
             --service ${{ env.SERVICE_NAME }} \
-            --task-definition ${{ env.TASK_FAMILY }} \
+            --task-definition ${{ steps.register-task.outputs.task_arn }} \
             --force-new-deployment
 
-      - name: Wait for service stability
+      - name: Wait for ECS service to stabilize
         run: |
           aws ecs wait services-stable \
             --cluster ${{ env.CLUSTER_NAME }} \
