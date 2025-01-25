@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.services.session_service import SessionService
 from app.services.chat_service import ChatService
 from app.services.guess_service import GuessingService
+from app.services.scoring_service import ScoringService
 from app.services.tts_service import TTSService
 from app.models.session import Message, UserSession
 from datetime import datetime
@@ -13,7 +14,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
-
 
 class ChatResponse(BaseModel):
     uid: str
@@ -42,6 +42,10 @@ def get_guess_service():
 
 def get_tts_service():
     return TTSService()
+
+
+def get_scoring_service():
+    return ScoringService()
 
 
 # Request models
@@ -89,15 +93,23 @@ async def advance_to_next_wagon(session: UserSession = Depends(get_session)) -> 
 async def guess_password(
     chat_message: ChatMessage,
     session: UserSession = Depends(get_session),
+    score_service: ScoringService = Depends(get_scoring_service),
     guess_service: GuessingService = Depends(get_guess_service),
 ) -> dict:
     guessing_progress = SessionService.get_guessing_progress(session.session_id)
 
+    theme = "A business of Gold"
+    password = "Gold"
+
     guess_response = guess_service.generate(
         previous_guesses=guessing_progress.guesses,
-        theme="A business of Gold",
+        theme=theme,
         previous_indications=guessing_progress.indications,
         current_indication=chat_message.message,
+    )
+
+    score = score_service.is_similar(
+        password=password, guess=guess_response.guess, theme=password
     )
 
     SessionService.update_guessing_progress(
@@ -105,6 +117,13 @@ async def guess_password(
         chat_message.message,
         guess_response.guess,
         guess_response.thoughts,
+    )
+
+    return GuessResponse(
+        guess=guess_response.guess,
+        thoughts=guess_response.thoughts,
+        score=score,
+        timestamp=datetime.utcnow().isoformat(),
     )
 
 
