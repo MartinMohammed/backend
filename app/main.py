@@ -78,7 +78,6 @@ app.include_router(wagons.router)
 app.include_router(chat.router)
 app.include_router(players.router)
 
-
 @app.get("/")
 async def root():
     logger.info("Root endpoint accessed")
