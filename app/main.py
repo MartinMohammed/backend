@@ -114,7 +114,6 @@ async def log_requests(request: Request, call_next):
 # Health check at root level for AWS health checks
 app.include_router(health.router, prefix="/health", tags=["health"])
 
-
 # API routes with /api prefix
 app.include_router(wagons.router, prefix="/api", tags=["wagons"])
 app.include_router(chat.router, prefix="/api", tags=["chat"])
