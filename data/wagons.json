@@ -9,21 +9,24 @@
           "position": [0.5, 0.5],
           "rotation": 0,
           "character": "main",
-          "model_type": "character-male-e"
+          "model_type": "character-male-e",
+          "items": ["banana", "blaster"]
         },
         {
           "uid": "wagon-0-player-2",
           "position": [0.25, 0.25],
           "rotation": 0,
           "character": "mob",
-          "model_type": "character-female-f"
+          "model_type": "character-female-f",
+          "items": ["cone"]
         },
         {
           "uid": "wagon-0-player-3",
           "position": [0.75, 0.55],
           "rotation": 0,
           "character": "citizen",
-          "model_type": "character-male-c"
+          "model_type": "character-male-c",
+          "items": ["blaster", "cone"]
         }
       ]
     },
@@ -36,21 +39,24 @@
           "position": [0.5, 0.5],
           "rotation": 0,
           "character": "main",
-          "model_type": "character-male-e"
+          "model_type": "character-male-e",
+          "items": ["blaster", "cone"]
         },
         {
           "uid": "wagon-1-player-2",
           "position": [0.25, 0.25],
           "rotation": 0,
           "character": "mob",
-          "model_type": "character-male-a"
+          "model_type": "character-male-a",
+          "items": ["blaster", "cone"]
         },
         {
           "uid": "wagon-1-player-3",
           "position": [0.75, 0.55],
           "rotation": 0,
           "character": "citizen",
-          "model_type": "character-female-e"
+          "model_type": "character-female-e",
+          "items": ["blaster"]
         }
       ]
     }
