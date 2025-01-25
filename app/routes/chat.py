@@ -26,6 +26,13 @@ class ChatHistoryResponse(BaseModel):
     uid: str
     messages: list[dict]
 
+    # Replace service initialization with dependency injection
+class GuessResponse(BaseModel):
+    guess: str
+    thoughts: str
+    timestamp: str
+
+
 
 def get_chat_service():
     return ChatService()
@@ -98,11 +105,6 @@ async def guess_password(
         chat_message.message,
         guess_response.guess,
         guess_response.thoughts,
-    )
-
-    return GuessResponse(
-        guess=guess_response.guess,
-        timestamp=datetime.utcnow().isoformat(),
     )
 
 
