@@ -130,6 +130,7 @@ class SessionService(LoggerMixin):
 
         # get the wagon id from the uid
         # uuid is in the format of wagon-<i>-player-<k>
+        
         wagon_id = int(uid.split("-")[1])
         # check if the wagon id is the same as the current wagon id
         # if the wagon id is not the same, client is trying to access a different wagon
@@ -197,19 +198,23 @@ class SessionService(LoggerMixin):
             )
         )
 
-        if session.current_wagon.conversations.get("main-character") is None:
-            session.current_wagon.conversations["main-character"] = Conversation(
-                uid="main-character"
+        wagon_id = session.current_wagon.wagon_id
+
+        if (
+            session.current_wagon.conversations.get(f"wagon-{wagon_id}-player-0")
+            is None
+        ):
+            session.current_wagon.conversations[f"wagon-{wagon_id}-player-0"] = (
+                Conversation(uid="player-0")
             )
 
-        
-        messages = session.current_wagon.conversations.get("main-character").messages
-        messages.append(
-            Message(role="user", content=indication)
-        )
-        messages.append(
-            Message(role="assistant", content=thought[0])
-        )
+        messages = session.current_wagon.conversations.get(
+            f"wagon-{wagon_id}-player-0"
+        ).messages
+
+
+        messages.append(Message(role="user", content=indication))
+        messages.append(Message(role="assistant", content=thought[0]))
 
         cls.update_session(session)
         cls.get_logger().info(
