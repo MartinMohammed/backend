@@ -21,7 +21,7 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=["game-jam-alb-dev-2020995835.eu-central-1.elb.amazonaws.com", "game-jam-alb-prod-1031730669.eu-central-1.elb.amazonaws.com"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
