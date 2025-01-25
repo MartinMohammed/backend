@@ -15,6 +15,7 @@ class ChatService(LoggerMixin):
         else:
             self.logger.info(f"Loaded character details for wagons: {list(self.character_details.keys())}")
         
+        
         # Get the Mistral API key from environment (injected by ECS)
         mistral_api_key = os.getenv("MISTRAL_API_KEY")
         if not mistral_api_key:

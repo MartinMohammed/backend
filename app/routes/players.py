@@ -5,6 +5,7 @@ from pathlib import Path
 from app.core.logging import get_logger
 
 router = APIRouter()
+
 logger = get_logger("players")
 
 def load_json_file(file_path: str) -> dict:

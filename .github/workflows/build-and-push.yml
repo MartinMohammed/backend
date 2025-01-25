@@ -53,7 +53,11 @@ jobs:
             echo "Removed ${{ env.ENV }} tag"
           else
             echo "No ${{ env.ENV }} tag found"
+
           fi
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
+          echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
 
           LATEST_MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
           if [ ! -z "$LATEST_MANIFEST" ]; then
@@ -100,7 +104,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
