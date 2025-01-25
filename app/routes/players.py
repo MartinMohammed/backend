@@ -25,6 +25,8 @@ def filter_player_info(complete_info: dict, properties: List[str] = None) -> dic
         return complete_info
     
     filtered_info = {}
+    # Add the id to the filtered info
+    filtered_info["id"] = complete_info["id"]
     valid_properties = {"name_info", "profile", "traits", "inventory", "dialogue"}
     
     logger.info(f"Filtering properties: {properties}")
@@ -131,7 +133,7 @@ async def get_wagon_players(
             players_info.append(filtered_info)
         
         logger.info(f"Successfully retrieved all players for wagon {wagon_id}")
-        return players_info
+        return {"players": players_info}
     except KeyError:
         logger.error(f"Wagon not found: wagon_id={wagon_id}")
         raise HTTPException(status_code=404, detail="Wagon not found") 
