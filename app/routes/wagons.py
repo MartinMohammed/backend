@@ -3,11 +3,11 @@ from pathlib import Path
 import json
 
 router = APIRouter(
-    prefix="/wagons",
+    prefix="/api/wagons",
     tags=["wagons"]
 )
 
-@router.get("")
+@router.get("/")
 async def get_wagons():
     """Get all wagons data"""
     try:
