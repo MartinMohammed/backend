@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Literal
 from datetime import datetime
 import uuid
 
 class Message(BaseModel):
-    role: str
+    role: Literal["system", "user", "assistant"]
     content: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 

@@ -1,10 +1,11 @@
-from app.models.session import Message, Conversation
+from app.models.session import Conversation
 from app.core.logging import LoggerMixin
+from app.core.aws_utils import SecretsManagerClient
 from pathlib import Path
 import json
 from typing import Optional, Dict
-import random
 import os
+from mistralai import Mistral
 
 class ChatService(LoggerMixin):
     def __init__(self):
@@ -14,26 +15,48 @@ class ChatService(LoggerMixin):
             self.logger.error("Failed to initialize character details - dictionary is empty")
         else:
             self.logger.info(f"Loaded character details for wagons: {list(self.character_details.keys())}")
-            
-        self.mock_responses = {
-            "greeting": [
-                "Hello! How can I help you today?",
-                "Hi there! What's on your mind?",
-                "Greetings! What would you like to discuss?"
-            ],
-            "general": [
-                "That's an interesting perspective. Tell me more.",
-                "I understand what you mean. Let's explore that further.",
-                "I see where you're coming from. What else is on your mind?"
-            ],
-            "farewell": [
-                "It was nice talking to you!",
-                "Take care! Let me know if you need anything else.",
-                "Goodbye! Feel free to chat again anytime."
-            ]
-        }
-        self.logger.info("ChatService initialized with mock responses")
         
+        # Initialize Secrets Manager client
+        secrets_client = SecretsManagerClient()
+        
+        # Get the Mistral API key from Secrets Manager
+        # Passed as environment variable in the ecs task definition
+        mistral_api_key = secrets_client.get_secret_value(os.getenv("MISTRAL_API_KEY_ARN"))
+        if not mistral_api_key:
+            self.logger.error("Failed to retrieve MISTRAL_API_KEY from AWS Secrets Manager")
+            raise ValueError("MISTRAL_API_KEY is required")
+        
+        self.client = Mistral(api_key=mistral_api_key)
+        self.model = "mistral-large-latest"
+        self.logger.info("Initialized Mistral AI client")
+        
+    def _get_secret_value(self, secret_name: str) -> Optional[str]:
+        """Retrieve a secret value from AWS Secrets Manager"""
+        try:
+            # Create a Secrets Manager client
+            session = boto3.session.Session()
+            client = session.client(
+                service_name='secretsmanager',
+                region_name=os.getenv('AWS_REGION', 'eu-central-1')
+            )
+            
+            self.logger.info(f"Attempting to retrieve secret: {secret_name}")
+            response = client.get_secret_value(SecretId=secret_name)
+            
+            if 'SecretString' in response:
+                self.logger.info(f"Successfully retrieved secret: {secret_name}")
+                return response['SecretString']
+            else:
+                self.logger.error(f"Secret {secret_name} does not contain a string value")
+                return None
+                
+        except ClientError as e:
+            self.logger.error(f"Failed to retrieve secret {secret_name}: {str(e)}")
+            return None
+        except Exception as e:
+            self.logger.error(f"Unexpected error retrieving secret {secret_name}: {str(e)}")
+            return None
+
     @classmethod
     def _load_character_details(cls) -> Dict:
         """Load character details from JSON files"""
@@ -105,50 +128,69 @@ class ChatService(LoggerMixin):
             })
             return None
 
-    def _get_mock_response(self, character: Dict, message: str) -> str:
-        """Generate a mock response based on character profile and message"""
-        message_lower = message.lower()
-        
-        # Determine response type
-        if any(word in message_lower for word in ["hi", "hello", "hey"]):
-            response_type = "greeting"
-        elif any(word in message_lower for word in ["bye", "goodbye", "see you"]):
-            response_type = "farewell"
-        else:
-            response_type = "general"
-
-        # Get random response
-        base_response = random.choice(self.mock_responses[response_type])
+    def _create_character_prompt(self, character: Dict) -> str:
+        """Create a prompt that describes the character's personality and context"""
         occupation = character["profile"]["occupation"]
-        trait = random.choice(character["traits"]["personality"])
+        traits = ", ".join(character["traits"]["personality"])
+        background = character["profile"].get("background", "")
         
-        response = f"{base_response} As a {occupation}, I tend to be quite {trait}."
+        prompt = f"""You are a character in a wagon train journey. You are a {occupation} with the following traits: {traits}. 
+{background}
+Please respond to messages in character, maintaining these personality traits and incorporating your occupation into your responses when relevant.
+Keep responses concise and natural, as if in a real conversation."""
         
-        self.logger.debug("Generated mock response", extra={
-            "response_type": response_type,
-            "occupation": occupation,
-            "trait": trait,
-            "response_length": len(response)
-        })
-        
-        return response
+        return prompt
 
     def generate_response(self, uid: str, conversation: Conversation) -> Optional[str]:
-        """Generate a mock response based on character profile"""
+        """Generate a response using Mistral AI based on character profile"""
         self.logger.info(f"Generating response for uid: {uid}")
         character = self._get_character_context(uid)
         if not character:
             self.logger.error(f"Cannot generate response - character not found for uid: {uid}")
             return None
 
-        # Get the last user message
-        last_message = next((msg.content for msg in reversed(conversation.messages) 
-                           if msg.role == "user"), "")
-        
-        self.logger.info("Generating response", extra={
-            "uid": uid,
-            "message_length": len(last_message),
-            "conversation_length": len(conversation.messages)
-        })
-
-        return self._get_mock_response(character, last_message) 
+        try:
+            # Create the system prompt with character context
+            system_prompt = self._create_character_prompt(character)
+            
+            # Convert conversation history to Mistral AI format
+            messages = [
+                {
+                    "role": "system",
+                    "content": system_prompt
+                }
+            ]
+            
+            # Add conversation history (limit to last 10 messages to stay within context window)
+            for msg in conversation.messages[-10:]:
+                # Convert 'agent' role to 'assistant' for Mistral compatibility
+                role = "assistant" if msg.role == "agent" else msg.role
+                messages.append({
+                    "role": role,
+                    "content": msg.content
+                })
+            
+            # Get response from Mistral AI
+            chat_response = self.client.chat.complete(
+                model=self.model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=500
+            )
+            
+            response = chat_response.choices[0].message.content
+            
+            self.logger.info("Generated Mistral AI response", extra={
+                "uid": uid,
+                "response_length": len(response),
+                "conversation_length": len(conversation.messages)
+            })
+            
+            return response
+            
+        except Exception as e:
+            self.logger.error(f"Failed to generate Mistral AI response: {str(e)}", extra={
+                "uid": uid,
+                "error": str(e)
+            })
+            return "I apologize, but I'm having trouble responding right now. Please try again later." 
