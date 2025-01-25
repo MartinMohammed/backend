@@ -96,6 +96,7 @@ jobs:
           echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
           echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
 
+
           uses: aws-actions/configure-aws-credentials@v4
           with:
             aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
