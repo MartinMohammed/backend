@@ -51,14 +51,15 @@ jobs:
           echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
           echo "IMAGE_TAG=$ENV" >> $GITHUB_ENV
 
-      - name: Debug Environment
+      - name: Remove latest tag if exists
         run: |
-          echo "ENV: ${{ env.ENV }}"
-          echo "ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}"
-          echo "CLUSTER_NAME: ${{ env.CLUSTER_NAME }}"
-          echo "SERVICE_NAME: ${{ env.SERVICE_NAME }}"
-          echo "TASK_FAMILY: ${{ env.TASK_FAMILY }}"
-          echo "IMAGE_TAG: ${{ env.IMAGE_TAG }}"
+          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
+          if [ ! -z "$MANIFEST" ]; then
+            aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest
+            echo "Removed latest tag"
+          else
+            echo "No latest tag found"
+          fi
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -68,9 +69,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
