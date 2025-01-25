@@ -2,13 +2,15 @@ name: Build and Push to ECR
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - "main"
     paths:
-      - "**"
+      - "backend/**" # Only trigger if changes are in backend directory
   pull_request:
-    branches: ["main"]
+    branches:
+      - "main"
     paths:
-      - "**"
+      - "backend/**" # Only trigger if changes are in backend directory
 
 env:
   AWS_REGION: eu-central-1
