@@ -19,30 +19,65 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS - Allow all origins and methods
+# Configure CORS - Allow all origins and methods with specific Unity requirements
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all methods
-    allow_headers=["*"],  # Allow all headers
-    expose_headers=["*"],  # Expose all headers
+    allow_credentials=False,  # Set to False when using allow_origins=["*"]
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language",
+        "Content-Language",
+        "Content-Type",
+        "Origin",
+        "Authorization",
+        "X-Requested-With",
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Headers",
+        "Access-Control-Allow-Methods",
+        "Access-Control-Allow-Credentials",
+        "Access-Control-Expose-Headers",
+    ],
+    expose_headers=[
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Headers",
+        "Access-Control-Allow-Methods",
+        "Access-Control-Allow-Credentials",
+        "Access-Control-Expose-Headers",
+    ],
     max_age=3600,  # Cache preflight requests for 1 hour
 )
+
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    """Add CORS headers to all responses including redirects"""
+    response = await call_next(request)
+    
+    # Ensure CORS headers are present on all responses including redirects
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
+    response.headers["Access-Control-Allow-Headers"] = "Accept, Accept-Language, Content-Language, Content-Type, Origin, Authorization, X-Requested-With"
+    response.headers["Access-Control-Max-Age"] = "3600"
+    
+    # Handle redirects by ensuring CORS headers are present
+    if response.status_code in [301, 302, 307, 308]:
+        response.headers["Access-Control-Expose-Headers"] = "Location"
+    
+    return response
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     """Add security headers to all responses"""
     response = await call_next(request)
     
-    # Security headers
+    # Security headers - Modified to be more permissive for Unity
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"  # Changed from DENY to SAMEORIGIN
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src * 'unsafe-inline' 'unsafe-eval'; connect-src *"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    response.headers["Content-Security-Policy"] = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *"
+    response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
     
     return response
 
