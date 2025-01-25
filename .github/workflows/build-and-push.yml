@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: ["main", "dev"]
 
-env:
-  AWS_REGION: eu-central-1
-  BASE_NAME: game-jam
-
 permissions:
   contents: read
   id-token: write
@@ -45,16 +41,22 @@ jobs:
             ENV="dev"
           fi
           echo "ENV=$ENV" >> $GITHUB_ENV
-          echo "ECR_REPOSITORY=game-jam-$ENV" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=game-jam-$ENV" >> $GITHUB_ENV
           echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
           echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
-          echo "IMAGE_TAG=$ENV" >> $GITHUB_ENV
 
-      - name: Remove latest tag if exists
+      - name: Remove existing tag if exists
         run: |
-          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
+          # Try to remove both the environment tag and latest tag
+          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }} --query 'images[].imageManifest' --output text || true)
           if [ ! -z "$MANIFEST" ]; then
+            aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }}
+            echo "Removed ${{ env.ENV }} tag"
+          else
+            echo "No ${{ env.ENV }} tag found"
+          fi
+
+          LATEST_MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
+          if [ ! -z "$LATEST_MANIFEST" ]; then
             aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest
             echo "Removed latest tag"
           else
@@ -69,7 +71,8 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ENV }}
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
@@ -90,11 +93,8 @@ jobs:
             ENV="dev"
           fi
           echo "ENV=$ENV" >> $GITHUB_ENV
-          echo "ECR_REPOSITORY=game-jam-$ENV" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=game-jam-$ENV" >> $GITHUB_ENV
           echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
           echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
-          echo "IMAGE_TAG=$ENV" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -117,7 +117,7 @@ jobs:
           # Extract only the needed fields and update the image
           jq '{
             family: .family,
-            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest"}],
+            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ENV }}"}],
             executionRoleArn: .executionRoleArn,
             taskRoleArn: .taskRoleArn,
             networkMode: .networkMode,
@@ -137,7 +137,7 @@ jobs:
       - name: Update ECS Service with New Task Definition
         run: |
           aws ecs update-service \
-            --cluster ${{ env.CLUSTER_NAME }} \
+            --cluster ${{ env.ECR_REPOSITORY }}-cluster \
             --service ${{ env.SERVICE_NAME }} \
             --task-definition ${{ steps.register-task.outputs.task_arn }} \
             --force-new-deployment
@@ -145,5 +145,5 @@ jobs:
       - name: Wait for ECS Service to Stabilize
         run: |
           aws ecs wait services-stable \
-            --cluster ${{ env.CLUSTER_NAME }} \
+            --cluster ${{ env.ECR_REPOSITORY }}-cluster \
             --services ${{ env.SERVICE_NAME }}
