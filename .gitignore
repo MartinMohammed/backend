@@ -44,6 +44,7 @@ htmlcov/
 # Logs
 *.log
 logs/
+game_jam.log
 
 # Local development
 .env.local
