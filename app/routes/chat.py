@@ -7,13 +7,14 @@ from datetime import datetime
 from pydantic import BaseModel
 import logging
 
-
-
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/chat", tags=["chat"])
+router = APIRouter(
+    prefix="/api/chat",
+    tags=["chat"]
+)
 
-# Replace service initialization with dependency injection
+# Response models
 class GuessResponse(BaseModel):
     guess: str
     thoughts: str
@@ -28,16 +29,6 @@ class ChatHistoryResponse(BaseModel):
     uid: str
     messages: list[dict]
 
-
-
-def get_chat_service():
-    return ChatService()
-
-def get_guess_service():
-    return GuessingService()
-
-# Adding pydantic models for responses
-
 # Request models
 class ChatMessage(BaseModel):
     message: str
@@ -46,6 +37,12 @@ class ChatMessage(BaseModel):
     previous_indications: list[str]
     current_indication: str
 
+# Dependency injection for services
+def get_chat_service():
+    return ChatService()
+
+def get_guess_service():
+    return GuessingService()
 
 def get_session(session_id: str) -> UserSession:
     """Dependency to get and validate session"""
@@ -54,7 +51,6 @@ def get_session(session_id: str) -> UserSession:
         raise HTTPException(status_code=404, detail="Session not found")
     return session
 
-
 @router.post("/session")
 async def create_session() -> UserSession:
     """Create a new user session"""
@@ -62,14 +58,12 @@ async def create_session() -> UserSession:
     logger.info(f"New session created: {session.session_id}")
     return session
 
-
 @router.get("/session/{session_id}")
 async def get_session_status(
     session: UserSession = Depends(get_session),
 ) -> UserSession:
     """Get session status and progress"""
     return session
-
 
 @router.post("/session/{session_id}/advance")
 async def advance_to_next_wagon(session: UserSession = Depends(get_session)) -> dict:
@@ -82,7 +76,6 @@ async def advance_to_next_wagon(session: UserSession = Depends(get_session)) -> 
         "current_wagon": session.current_wagon.wagon_id,
     }
 
-# Add depedency injection and response models
 @router.post("/session/{session_id}/guess", response_model=GuessResponse)
 async def guess_password(
     chat_message: ChatMessage,
@@ -99,15 +92,17 @@ async def guess_password(
     )
 
     SessionService.update_guessing_progress(
-        session.session_id, chat_message.message, guess_response.guess
+        session.session_id,
+        chat_message.message,
+        guess_response.guess,
+        guess_response.thoughts,
     )
 
-    return {
-        "guess": guess_response.guess,
-        "thoughts": guess_response.thoughts,
-        "timestamp": datetime.utcnow().isoformat(),
-    }
-
+    return GuessResponse(
+        guess=guess_response.guess,
+        thoughts=guess_response.thoughts,
+        timestamp=datetime.utcnow().isoformat(),
+    )
 
 @router.post("/session/{session_id}/{uid}", response_model=ChatResponse)
 async def chat_with_character(
@@ -138,30 +133,14 @@ async def chat_with_character(
         raise HTTPException(status_code=500, detail="Failed to process message")
 
     # Generate AI response using the prompt
-    prompt = f"""
-    You are Julia, an actress experiencing significant stress on your first day of work. You forgot to learn your lines and are struggling to remember the password for the next wagon. Walk-on actors have tried to help you, now it's your turn to guess the password.
-    Emotional State: Stressed, anxious, overwhelmed
+    character = chat_service._get_character_context(uid)
+    if not character:
+        raise HTTPException(status_code=404, detail="Character not found")
 
-    Password theme: {chat_message.theme} (Do not share the theme with the player)
+    system_prompt = chat_service._create_character_prompt(character)
+    full_prompt = f"{system_prompt}\n\n{chat_message.message}"
 
-    Previous Guesses: {", ".join(chat_message.previous_guesses)}
-
-    Previous indications: {", ".join(chat_message.previous_indications)}
-
-    Current player indication: {chat_message.current_indication}
-
-    Your task is to guess the password. Think through this carefully, considering:
-    1. The indication given by the player
-    2. The previous guesses (Do not guess the previous guesses)
-    3. Logical and emotional reasoning for each password attempt
-
-    Provide your password guesses with:
-    - A role-play as your character in the thoughts
-    - Take into account the previous indication of the player and try new guesses
-    - Any emotional reaction to the guessing process
-    """
-
-    ai_response = chat_service.generate_response(uid, conversation, prompt)
+    ai_response = chat_service.generate_response(uid, conversation.messages, full_prompt)
     if not ai_response:
         raise HTTPException(status_code=500, detail="Failed to generate response")
 
@@ -194,7 +173,6 @@ async def get_chat_history(
             for msg in conversation.messages
         ],
     }
-
 
 @router.delete("/session/{session_id}")
 async def terminate_session(session: UserSession = Depends(get_session)) -> dict:
