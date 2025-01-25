@@ -52,20 +52,21 @@ jobs:
           fi
 
           # Set resource names using the same pattern as Terraform
-          echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=${BASE_NAME}${ENV}" >> $GITHUB_ENV
           echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
           echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
           echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v5
+
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ENV }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/$"ECR_REPOSITORY=${BASE_NAME}${ENV}":${{ env.ENV }}
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
