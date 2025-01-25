@@ -2,27 +2,25 @@ name: Build and Push to ECR
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
+    paths:
+      - "backend/**"
   pull_request:
-    branches:
-      - main
+    branches: ["main"]
+    paths:
+      - "backend/**"
 
 env:
   AWS_REGION: eu-central-1
   ECS_CLUSTER: fastapi-ecs-cluster
   ECS_SERVICE: fastapi-service
   CONTAINER_NAME: fastapi-service
-  ECR_REPOSITORY: your-ecr-repository-name # Ensure this is set appropriately
 
 jobs:
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
     environment: dev
-
-    # Ensure the job only runs for the main branch
-    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
 
     permissions:
       contents: read
@@ -60,9 +58,9 @@ jobs:
 
       - name: Remove latest tag if exists
         run: |
-          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
+          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
           if [ ! -z "$MANIFEST" ]; then
-            aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest
+            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest
             echo "Removed latest tag"
           else
             echo "No latest tag found"
@@ -72,11 +70,12 @@ jobs:
         uses: docker/build-push-action@v5
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         with:
-          context: .
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:latest,${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
           provenance: false
           sbom: false
 
@@ -85,9 +84,7 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     environment: dev
-
-    # Ensure the deploy job only runs for the main branch
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' # Only deploy on main branch
 
     permissions:
       contents: read
