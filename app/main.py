@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import Response, RedirectResponse
 from app.routes import health, wagons, chat, players
 from app.core.logging import get_logger
 from dotenv import load_dotenv
@@ -26,23 +26,13 @@ app.add_middleware(
     allow_credentials=False,  # Set to False when using allow_origins=["*"]
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
     allow_headers=[
-        "Accept",
-        "Accept-Language",
-        "Content-Language",
-        "Content-Type",
-        "Origin",
-        "Authorization",
-        "X-Requested-With",
-        "Access-Control-Allow-Origin",
-        "Access-Control-Allow-Headers",
-        "Access-Control-Allow-Methods",
-        "Access-Control-Allow-Credentials",
-        "Access-Control-Expose-Headers",
+        "*"  # Allow all headers for maximum compatibility
     ],
     expose_headers=[
+        "Location",  # Important for redirects
         "Access-Control-Allow-Origin",
-        "Access-Control-Allow-Headers",
         "Access-Control-Allow-Methods",
+        "Access-Control-Allow-Headers",
         "Access-Control-Allow-Credentials",
         "Access-Control-Expose-Headers",
     ],
@@ -50,19 +40,24 @@ app.add_middleware(
 )
 
 @app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
-    """Add CORS headers to all responses including redirects"""
+async def handle_redirects(request: Request, call_next):
+    """Handle redirects and ensure CORS headers are present"""
     response = await call_next(request)
     
-    # Ensure CORS headers are present on all responses including redirects
+    # Always add CORS headers, especially important for redirects
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
-    response.headers["Access-Control-Allow-Headers"] = "Accept, Accept-Language, Content-Language, Content-Type, Origin, Authorization, X-Requested-With"
+    response.headers["Access-Control-Allow-Headers"] = "*"
     response.headers["Access-Control-Max-Age"] = "3600"
     
-    # Handle redirects by ensuring CORS headers are present
+    # Special handling for redirects
     if response.status_code in [301, 302, 307, 308]:
         response.headers["Access-Control-Expose-Headers"] = "Location"
+        # Ensure redirect goes to HTTPS
+        if "Location" in response.headers:
+            location = response.headers["Location"]
+            if location.startswith("http://"):
+                response.headers["Location"] = location.replace("http://", "https://", 1)
     
     return response
 
