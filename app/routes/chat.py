@@ -41,7 +41,7 @@ async def advance_to_next_wagon(session: UserSession = Depends(get_session)) -> 
     success = SessionService.advance_wagon(session.session_id)
     if not success:
         raise HTTPException(status_code=400, detail="Cannot advance to next wagon")
-    return {"message": "Advanced to next wagon", "current_wagon": session.current_wagon_id}
+    return {"message": "Advanced to next wagon", "current_wagon": session.current_wagon.wagon_id}
 
 @router.post("/session/{session_id}/{uid}")
 async def chat_with_character(
@@ -54,7 +54,7 @@ async def chat_with_character(
     try:
         # You need to be in the wagon to chat with the player
         wagon_id = int(uid.split('-')[1])
-        if wagon_id != session.current_wagon_id:
+        if wagon_id != session.current_wagon.wagon_id:
             raise HTTPException(
                 status_code=400,
                 detail="Cannot chat with character from different wagon"
