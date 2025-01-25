@@ -117,7 +117,7 @@ jobs:
           # Extract only the needed fields and update the image
           jq '{
             family: .family,
-            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"}],
+            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest"}],
             executionRoleArn: .executionRoleArn,
             taskRoleArn: .taskRoleArn,
             networkMode: .networkMode,
