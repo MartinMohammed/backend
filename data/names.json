@@ -1,0 +1,44 @@
+{
+  "names": {
+    "wagon-0": {
+      "player-1": {
+        "firstName": "Alex",
+        "lastName": "Taylor",
+        "sex": "male",
+        "fullName": "Alex Taylor"
+      },
+      "player-2": {
+        "firstName": "Emma",
+        "lastName": "Doe",
+        "sex": "female",
+        "fullName": "Emma Doe"
+      },
+      "player-3": {
+        "firstName": "Liam",
+        "lastName": "Smith",
+        "sex": "male",
+        "fullName": "Liam Smith"
+      }
+    },
+    "wagon-1": {
+      "player-1": {
+        "firstName": "Alex",
+        "lastName": "Taylor",
+        "sex": "male",
+        "fullName": "Alex Taylor"
+      },
+      "player-2": {
+        "firstName": "Ethan",
+        "lastName": "Williams",
+        "sex": "male",
+        "fullName": "Ethan Williams"
+      },
+      "player-3": {
+        "firstName": "Sophia",
+        "lastName": "Johnson",
+        "sex": "female",
+        "fullName": "Sophia Johnson"
+      }
+    }
+  }
+}

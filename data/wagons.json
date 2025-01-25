@@ -2,7 +2,7 @@
   "wagons": [
     {
       "id": 0,
-      "passcode": "gamejam",
+      "passcode": "creativity",
       "people": [
         {
           "uid": "wagon-0-player-1",
@@ -10,7 +10,7 @@
           "rotation": 0,
           "character": "main",
           "model_type": "character-male-e",
-          "items": ["banana", "blaster"]
+          "items": []
         },
         {
           "uid": "wagon-0-player-2",
@@ -32,7 +32,7 @@
     },
     {
       "id": 1,
-      "passcode": "gamejam676",
+      "passcode": "inspiration",
       "people": [
         {
           "uid": "wagon-1-player-1",
@@ -40,7 +40,7 @@
           "rotation": 0,
           "character": "main",
           "model_type": "character-male-e",
-          "items": ["blaster", "cone"]
+          "items": []
         },
         {
           "uid": "wagon-1-player-2",
