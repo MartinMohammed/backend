@@ -7,7 +7,6 @@ router = APIRouter(
     tags=["wagons"]
 )
 
-
 @router.get("")
 async def get_wagons():
     """Get all wagons data"""
