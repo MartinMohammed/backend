@@ -100,10 +100,10 @@ jobs:
           fi
 
           # Set resource names
-          echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
-          echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
-          echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=${{env.BASE_NAME}}-${{ env.ENV }}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=${{env.BASE_NAME}}-${{ env.ENV }}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-${{ env.ENV }}" >> $GITHUB_ENV
+          echo "TASK_FAMILY=${{env.BASE_NAME }}-task-${{ env.ENV }}" >> $GITHUB_ENV
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
