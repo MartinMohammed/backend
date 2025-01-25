@@ -53,17 +53,28 @@ jobs:
             echo "Removed ${{ env.ENV }} tag"
           else
             echo "No ${{ env.ENV }} tag found"
+
+          fi
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
+          echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
+
+          LATEST_MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
+          if [ ! -z "$LATEST_MANIFEST" ]; then
+            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest
+            echo "Removed latest tag"
+          else
+            echo "No latest tag found"
           fi
 
       - name: Build and push
         uses: docker/build-push-action@v5
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV }}
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV }}
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
@@ -76,7 +87,7 @@ jobs:
     environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
     steps:
-      - name: Set Environment Variables
+      - name: Set Environment varsiables
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             ENV="prod"
@@ -93,11 +104,9 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
       - name: Download and Process Task Definition
         run: |
           # Get the current task definition
