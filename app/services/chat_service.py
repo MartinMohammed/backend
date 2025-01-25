@@ -76,7 +76,7 @@ class ChatService(LoggerMixin):
             self.logger.debug(f"Getting character context for uid: {uid}")
             # "wagon-<i>-player-<k>"
             uid_splitted = uid.split('-')
-            wagon_key, player_key = uid_splitted[0:2], uid_splitted[2:]
+            wagon_key, player_key = f"wagon-{uid_splitted[1]}", f"player-{uid_splitted[3]}"
             
             # check if the wagon key exists
             if wagon_key not in self.character_details:
