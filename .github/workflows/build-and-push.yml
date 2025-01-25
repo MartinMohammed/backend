@@ -19,65 +19,117 @@ permissions:
   id-token: write
 
 jobs:
-deploy:
-  name: Deploy to ECS
-  needs: build-and-push
-  runs-on: ubuntu-latest
-  environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
-  if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-  steps:
-    - name: Set environment variables
-      id: env-vars
-      run: |
-        # Set environment name based on branch
-        if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-          echo "ENV=prod" >> $GITHUB_ENV
-          echo "IMAGE_TAG=prod" >> $GITHUB_ENV
-        else
-          echo "ENV=dev" >> $GITHUB_ENV
-          echo "IMAGE_TAG=dev" >> $GITHUB_ENV
-        fi
+  build-and-push:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
-        # Set resource names using the same pattern as Terraform
-        echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
-        echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
-        echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
-        echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-    - name: Download task definition
-      run: |
-        aws ecs describe-task-definition \
-          --task-definition ${{ env.TASK_FAMILY }} \
-          --query taskDefinition > task-definition.json
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Update container image
-      run: |
-        # Update the container image in task definition
-        jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}-${{ env.ENV }}:${{ env.ENV }}" \
-          '.containerDefinitions[0].image = $IMAGE' \
-          task-definition.json > updated-task-definition.json
+      - name: Set environment variables
+        id: env-vars
+        run: |
+          # Set environment name based on branch
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+            echo "IMAGE_TAG=prod" >> $GITHUB_ENV
+          else
+            echo "ENV=dev" >> $GITHUB_ENV
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
+          fi
 
-    - name: Register new task definition
-      run: |
-        aws ecs register-task-definition \
-          --cli-input-json file://updated-task-definition.json
+          # Set resource names using the same pattern as Terraform
+          echo "ECR_REPOSITORY=${BASE_NAME}${ENV}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
+          echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
 
-    - name: Update ECS service
-      run: |
-        aws ecs update-service \
-          --cluster ${{ env.CLUSTER_NAME }} \
-          --service ${{ env.SERVICE_NAME }} \
-          --task-definition ${{ env.TASK_FAMILY }} \
-          --force-new-deployment
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.BASE_NAME }}-${{ env.ENV }}:${{ env.ENV }}
+          build-args: |
+            ENV=${{ env.ENV }}
+          provenance: false
+          sbom: false
 
-    - name: Wait for service stability
-      run: |
-        aws ecs wait services-stable \
-          --cluster ${{ env.CLUSTER_NAME }} \
-          --services ${{ env.SERVICE_NAME }}
+  deploy:
+    name: Deploy to ECS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    steps:
+      - name: Set environment variables
+        id: env-vars
+        run: |
+          # Set environment name based on branch
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+            echo "IMAGE_TAG=prod" >> $GITHUB_ENV
+          else
+            echo "ENV=dev" >> $GITHUB_ENV
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
+          fi
+
+          # Set resource names using the same pattern as Terraform
+          echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
+          echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
+
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.TASK_FAMILY }} \
+            --query taskDefinition > task-definition.json
+
+      - name: Update container image
+        run: |
+          # Update the container image in task definition
+          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}-${{ env.ENV }}:${{ env.ENV }}" \
+            '.containerDefinitions[0].image = $IMAGE' \
+            task-definition.json > updated-task-definition.json
+
+      - name: Register new task definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://updated-task-definition.json
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --service ${{ env.SERVICE_NAME }} \
+            --task-definition ${{ env.TASK_FAMILY }} \
+            --force-new-deployment
+
+      - name: Wait for service stability
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --services ${{ env.SERVICE_NAME }}
