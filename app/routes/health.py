@@ -1,13 +1,11 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Response
 
 router = APIRouter(
     prefix="/health",
-    tags=["chat"]
+    tags=["health"]
 )
 
-@router.get("", status_code=status.HTTP_200_OK)
+@router.get("")
 async def health_check():
-    return {
-        "status": "healthy",
-        "message": "Service is running"
-    } 
+    """Health check endpoint for AWS ELB"""
+    return Response(status_code=status.HTTP_200_OK) 
