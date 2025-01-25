@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response, RedirectResponse
+from fastapi.responses import Response
 from app.routes import health, wagons, chat, players
 from app.core.logging import get_logger
 from dotenv import load_dotenv
@@ -19,17 +19,30 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS - Allow all origins and methods with specific Unity requirements
+# -----------------------------------------------------------------------------
+# 1. Configure CORS for Unity Web Requests
+# -----------------------------------------------------------------------------
+#
+# Unity’s documentation highlights the need for the following CORS headers:
+#   "Access-Control-Allow-Origin": "*",
+#   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+#   "Access-Control-Allow-Headers": "Accept, X-Access-Token, X-Application-Name, X-Request-Sent-Time",
+#   "Access-Control-Allow-Credentials": "true" (optional, but requires NOT using "*")
+#
+# In this example, we allow all origins ("*") and do NOT allow credentials. 
+# This is the simplest approach. If you need cookies or authentication headers,
+# switch `allow_origins` to an explicit domain and set `allow_credentials=True`.
+#
+# Note: We also allow PUT, DELETE, etc., but that’s up to your application needs.
+#
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins
-    allow_credentials=False,  # Set to False when using allow_origins=["*"]
+    allow_origins=["*"],  # "https://your-custom-domain.com" if credentials are needed
+    allow_credentials=False,  # Must be False if allow_origins=["*"] in modern browsers
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
-    allow_headers=[
-        "*"  # Allow all headers for maximum compatibility
-    ],
+    allow_headers=["*"],  # You could limit this to ["Accept", "X-Access-Token", ...] if desired
     expose_headers=[
-        "Location",  # Important for redirects
+        "Location",
         "Access-Control-Allow-Origin",
         "Access-Control-Allow-Methods",
         "Access-Control-Allow-Headers",
@@ -39,49 +52,62 @@ app.add_middleware(
     max_age=3600,  # Cache preflight requests for 1 hour
 )
 
+# -----------------------------------------------------------------------------
+# 2. Middleware to handle redirects and force HTTPS in redirect Location headers
+# -----------------------------------------------------------------------------
 @app.middleware("http")
 async def handle_redirects(request: Request, call_next):
-    """Handle redirects and ensure CORS headers are present"""
+    """Ensure CORS headers are in redirect responses and force https in the 'Location' header."""
     response = await call_next(request)
     
-    # Always add CORS headers, especially important for redirects
+    # Always add the essential CORS headers (in case the built-in CORS middleware missed a redirect).
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
     response.headers["Access-Control-Allow-Headers"] = "*"
     response.headers["Access-Control-Max-Age"] = "3600"
     
-    # Special handling for redirects
+    # Expose 'Location' in case the browser needs to read that header after a redirect
     if response.status_code in [301, 302, 307, 308]:
         response.headers["Access-Control-Expose-Headers"] = "Location"
-        # Ensure redirect goes to HTTPS
         if "Location" in response.headers:
             location = response.headers["Location"]
+            # Force HTTPS if the redirect is incorrectly set to http
             if location.startswith("http://"):
                 response.headers["Location"] = location.replace("http://", "https://", 1)
     
     return response
 
+# -----------------------------------------------------------------------------
+# 3. Security headers (Content-Security-Policy, etc.)
+# -----------------------------------------------------------------------------
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
-    """Add security headers to all responses"""
+    """Add security-related headers to all responses."""
     response = await call_next(request)
     
-    # Security headers - Modified to be more permissive for Unity
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"  # Changed from DENY to SAMEORIGIN
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"  # More permissive than DENY
     response.headers["X-XSS-Protection"] = "1; mode=block"
+    # This tells browsers to only connect via HTTPS (for 1 year)
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src *"
+    # Example CSP that is permissive to allow 'unsafe-inline' and 'unsafe-eval'
+    # for typical Unity web builds. Adjust as needed for your security posture.
+    response.headers["Content-Security-Policy"] = (
+        "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; "
+        "connect-src *"
+    )
     response.headers["Referrer-Policy"] = "no-referrer-when-downgrade"
     
     return response
 
+# -----------------------------------------------------------------------------
+# 4. Logging middleware
+# -----------------------------------------------------------------------------
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Middleware to log all requests and responses"""
+    """Middleware to log all requests and responses."""
     start_time = time.time()
     
-    # Log request
     logger.info(
         "Incoming request",
         extra={
@@ -92,12 +118,10 @@ async def log_requests(request: Request, call_next):
         }
     )
     
-    # Process request
     try:
         response = await call_next(request)
         process_time = time.time() - start_time
         
-        # Log response
         logger.info(
             "Request completed",
             extra={
@@ -110,7 +134,6 @@ async def log_requests(request: Request, call_next):
         return response
         
     except Exception as e:
-        # Log error
         logger.error(
             "Request failed",
             extra={
@@ -121,12 +144,17 @@ async def log_requests(request: Request, call_next):
         )
         raise
 
-# Include routers
+# -----------------------------------------------------------------------------
+# 5. Include your routers
+# -----------------------------------------------------------------------------
 app.include_router(health.router)
 app.include_router(wagons.router)
 app.include_router(chat.router)
 app.include_router(players.router)
 
+# -----------------------------------------------------------------------------
+# 6. Basic root endpoint
+# -----------------------------------------------------------------------------
 @app.get("/")
 async def root():
     logger.info("Root endpoint accessed")
