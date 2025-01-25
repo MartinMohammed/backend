@@ -16,8 +16,50 @@ logger = get_logger("main")
 
 app = FastAPI(
     title="Game Jam API",
-    description="API for Game Jam Hackathon",
-    version="1.0.0"
+    description="""
+    Game Jam Hackathon API provides endpoints for managing wagon-based gameplay, including:
+    
+    * 🎮 Player Management - Create and manage player profiles
+    * 🚂 Wagon System - Handle wagon-related operations
+    * 💬 Chat System - In-game chat functionality
+    * 🎯 Game State - Track and update game state
+    
+    ## API Features
+    
+    * Real-time chat system
+    * Player profile management
+    * Wagon configuration and state management
+    * Health monitoring
+    """,
+    version="1.0.0",
+    contact={
+        "name": "Game Jam Team",
+        "url": "https://github.com/yourusername/game-jam-hackathon",  # Replace with actual repo URL
+    },
+    license_info={
+        "name": "MIT",
+    },
+    openapi_tags=[
+        {
+            "name": "health",
+            "description": "Health check endpoints to monitor API status",
+        },
+        {
+            "name": "wagons",
+            "description": "Operations with wagon management and configuration",
+        },
+        {
+            "name": "chat",
+            "description": "In-game chat system operations",
+        },
+        {
+            "name": "players",
+            "description": "Player profile and inventory management",
+        },
+    ],
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+    openapi_url="/api/openapi.json"
 )
 
 # Configure CORS
