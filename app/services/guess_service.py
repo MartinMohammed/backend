@@ -3,6 +3,7 @@ from langchain_mistralai import ChatMistralAI
 from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel, Field
 from app.models.session import Message
+from pydantic import BaseModel, Field
 from app.prompts import GUESSING_PROMPT
 
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
@@ -10,7 +11,7 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
 class GuessResponse(BaseModel):
     guess: str = Field(description="A one-word guess for the password related theme")
-    thoughts: str = Field(
+thoughts: str = Field(
         description="Thoughts spoken out loud leading to the password guess"
     )
 
