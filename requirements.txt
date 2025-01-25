@@ -7,3 +7,4 @@ mistralai>=0.0.7
 python-dotenv>=1.0.0
 langchain>=0.3.15
 langchain-mistralai>=0.2.4
+elevenlabs>=0.1.0
