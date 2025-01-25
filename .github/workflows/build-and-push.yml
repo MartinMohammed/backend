@@ -2,25 +2,22 @@ name: Build and Push to ECR
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "dev"]
     paths:
       - "**"
   pull_request:
-    branches: ["main"]
+    branches: ["main", "dev"]
     paths:
       - "**"
 
 env:
   AWS_REGION: eu-central-1
-  ECS_CLUSTER: fastapi-ecs-cluster
-  ECS_SERVICE: fastapi-service
-  CONTAINER_NAME: fastapi-service
 
 jobs:
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
     permissions:
       contents: read
@@ -38,13 +35,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Debug After Checkout
-        run: |
-          echo "Repository contents:"
-          ls -la
-          echo "Dockerfile location:"
-          find . -name "Dockerfile"
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -56,14 +46,26 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Remove latest tag if exists
+      - name: Set environment variables
         run: |
-          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
-          if [ ! -z "$MANIFEST" ]; then
-            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest
-            echo "Removed latest tag"
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "ENV_TAG=prod" >> $GITHUB_ENV
+            echo "ECS_CLUSTER=fastapi-ecs-cluster-prod" >> $GITHUB_ENV
+            echo "ECS_SERVICE=fastapi-service-prod" >> $GITHUB_ENV
           else
-            echo "No latest tag found"
+            echo "ENV_TAG=dev" >> $GITHUB_ENV
+            echo "ECS_CLUSTER=fastapi-ecs-cluster-dev" >> $GITHUB_ENV
+            echo "ECS_SERVICE=fastapi-service-dev" >> $GITHUB_ENV
+          fi
+
+      - name: Remove existing tag if exists
+        run: |
+          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV_TAG }} --query 'images[].imageManifest' --output text || true)
+          if [ ! -z "$MANIFEST" ]; then
+            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV_TAG }}
+            echo "Removed ${{ env.ENV_TAG }} tag"
+          else
+            echo "No ${{ env.ENV_TAG }} tag found"
           fi
 
       - name: Build and push
@@ -75,7 +77,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:latest
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV_TAG }}
           provenance: false
           sbom: false
 
@@ -83,14 +85,24 @@ jobs:
     name: Deploy to ECS
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment: dev
-    if: github.ref == 'refs/heads/main' # Only deploy on main branch
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
 
     permissions:
       contents: read
       id-token: write
 
     steps:
+      - name: Set environment variables
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "ECS_CLUSTER=fastapi-ecs-cluster-prod" >> $GITHUB_ENV
+            echo "ECS_SERVICE=fastapi-service-prod" >> $GITHUB_ENV
+          else
+            echo "ECS_CLUSTER=fastapi-ecs-cluster-dev" >> $GITHUB_ENV
+            echo "ECS_SERVICE=fastapi-service-dev" >> $GITHUB_ENV
+          fi
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -100,7 +112,6 @@ jobs:
 
       - name: Update ECS service
         run: |
-          # Force new deployment of ECS service
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
