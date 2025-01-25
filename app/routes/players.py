@@ -44,7 +44,7 @@ def create_players_response_model(properties: Optional[List[str]] = None) -> Typ
     return create_model("DynamicPlayersResponse", players=(List[player_model], ...))
 
 router = APIRouter(
-    prefix="/api",
+    prefix="/players",
     tags=["players"],
     responses={404: {"description": "Not found"}}
 )

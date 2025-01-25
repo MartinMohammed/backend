@@ -115,9 +115,9 @@ async def log_requests(request: Request, call_next):
 app.include_router(health.router, prefix="/health", tags=["health"])
 
 # API routes with /api prefix
-app.include_router(wagons.router, prefix="/api/wagons", tags=["wagons"])
-app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
-app.include_router(players.router, prefix="/api/players", tags=["players"])
+app.include_router(wagons.router, prefix="/api", tags=["wagons"])
+app.include_router(chat.router, prefix="/api", tags=["chat"])
+app.include_router(players.router, prefix="/api", tags=["players"])
 
 @app.get("/")
 async def root():
