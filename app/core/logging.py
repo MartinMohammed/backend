@@ -4,7 +4,6 @@ from datetime import datetime
 import os
 import sys
 from logging.handlers import RotatingFileHandler
-from .config import settings
 
 class JSONFormatter(logging.Formatter):
     """Custom JSON formatter for structured logging"""
@@ -29,7 +28,7 @@ class JSONFormatter(logging.Formatter):
         return json.dumps(log_data)
 
 def setup_logging():
-    """Configure logging based on the environment"""
+    """Configure logging"""
     
     # Create logs directory if it doesn't exist
     log_dir = "logs"
@@ -37,27 +36,19 @@ def setup_logging():
         os.makedirs(log_dir)
     
     # Set up basic configuration
-    log_level = getattr(logging, settings.LOG_LEVEL.upper())
-    
-    # Format based on environment
-    if settings.ENV == "prod":
-        log_format = '%(asctime)s - %(name)s - %(levelname)s - [%(correlation_id)s] - %(message)s'
-        date_format = '%Y-%m-%d %H:%M:%S'
-    else:
-        log_format = '%(asctime)s - %(levelname)s - %(message)s'
-        date_format = '%H:%M:%S'
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     
     # Configure root logger
     logging.basicConfig(
         level=log_level,
-        format=log_format,
-        datefmt=date_format,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        datefmt='%H:%M:%S',
         handlers=[
             # Console handler
             logging.StreamHandler(sys.stdout),
             # File handler with rotation
             RotatingFileHandler(
-                f"{log_dir}/{settings.ENV}.log",
+                f"{log_dir}/app.log",
                 maxBytes=10485760,  # 10MB
                 backupCount=5,
                 encoding="utf-8"
@@ -65,10 +56,9 @@ def setup_logging():
         ]
     )
     
-    # Set third-party loggers to WARNING in production
-    if settings.ENV == "prod":
-        for logger_name in ["uvicorn", "gunicorn", "fastapi"]:
-            logging.getLogger(logger_name).setLevel(logging.WARNING)
+    # Set third-party loggers to WARNING
+    for logger_name in ["uvicorn", "gunicorn", "fastapi"]:
+        logging.getLogger(logger_name).setLevel(logging.WARNING)
     
     # Create logger for the application
     logger = logging.getLogger("game-jam")
