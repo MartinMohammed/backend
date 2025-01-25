@@ -1,6 +1,5 @@
 from app.models.session import Conversation
 from app.core.logging import LoggerMixin
-from app.core.aws_utils import SecretsManagerClient
 from pathlib import Path
 import json
 from typing import Optional, Dict
@@ -16,47 +15,16 @@ class ChatService(LoggerMixin):
         else:
             self.logger.info(f"Loaded character details for wagons: {list(self.character_details.keys())}")
         
-        # Initialize Secrets Manager client
-        secrets_client = SecretsManagerClient()
-        
-        # Get the Mistral API key from Secrets Manager
-        # Passed as environment variable in the ecs task definition
-        mistral_api_key = secrets_client.get_secret_value(os.getenv("MISTRAL_API_KEY_ARN"))
+        # Get the Mistral API key from environment (injected by ECS)
+        mistral_api_key = os.getenv("MISTRAL_API_KEY")
         if not mistral_api_key:
-            self.logger.error("Failed to retrieve MISTRAL_API_KEY from AWS Secrets Manager")
+            self.logger.error("MISTRAL_API_KEY not found in environment variables")
             raise ValueError("MISTRAL_API_KEY is required")
         
         self.client = Mistral(api_key=mistral_api_key)
         self.model = "mistral-large-latest"
         self.logger.info("Initialized Mistral AI client")
         
-    def _get_secret_value(self, secret_name: str) -> Optional[str]:
-        """Retrieve a secret value from AWS Secrets Manager"""
-        try:
-            # Create a Secrets Manager client
-            session = boto3.session.Session()
-            client = session.client(
-                service_name='secretsmanager',
-                region_name=os.getenv('AWS_REGION', 'eu-central-1')
-            )
-            
-            self.logger.info(f"Attempting to retrieve secret: {secret_name}")
-            response = client.get_secret_value(SecretId=secret_name)
-            
-            if 'SecretString' in response:
-                self.logger.info(f"Successfully retrieved secret: {secret_name}")
-                return response['SecretString']
-            else:
-                self.logger.error(f"Secret {secret_name} does not contain a string value")
-                return None
-                
-        except ClientError as e:
-            self.logger.error(f"Failed to retrieve secret {secret_name}: {str(e)}")
-            return None
-        except Exception as e:
-            self.logger.error(f"Unexpected error retrieving secret {secret_name}: {str(e)}")
-            return None
-
     @classmethod
     def _load_character_details(cls) -> Dict:
         """Load character details from JSON files"""
