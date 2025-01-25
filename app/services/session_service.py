@@ -33,6 +33,7 @@ class SessionService(LoggerMixin):
         """Get an existing session by ID"""
         # get the session from the dictionary
         session = cls._sessions.get(session_id)
+
         if session:
             cls.get_logger().debug(
                 "Retrieved session", extra={"session_id": session_id}
@@ -146,6 +147,7 @@ class SessionService(LoggerMixin):
 
         # get the conversation from the current wagon
         conversation = session.current_wagon.conversations.get(uid)
+
         if conversation:
             cls.get_logger().debug(
                 "Retrieved conversation",
@@ -176,7 +178,7 @@ class SessionService(LoggerMixin):
 
     @classmethod
     def update_guessing_progress(
-        cls, session_id: str, indication: str, guess: str
+        cls, session_id: str, indication: str, guess: str, thought: list[str]
     ) -> None:
         session = cls.get_session(session_id)
 
@@ -193,6 +195,20 @@ class SessionService(LoggerMixin):
                 role="user",
                 content=indication,
             )
+        )
+
+        if session.current_wagon.conversations.get("main-character") is None:
+            session.current_wagon.conversations["main-character"] = Conversation(
+                uid="main-character"
+            )
+
+        
+        messages = session.current_wagon.conversations.get("main-character").messages
+        messages.append(
+            Message(role="user", content=indication)
+        )
+        messages.append(
+            Message(role="assistant", content=thought[0])
         )
 
         cls.update_session(session)

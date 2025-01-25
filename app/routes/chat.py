@@ -51,6 +51,12 @@ class ChatMessage(BaseModel):
     current_indication: str
 
 
+class GuessResponse(BaseModel):
+    guess: str
+    thoughts: list[str]
+    timestamp: str
+
+
 def get_session(session_id: str) -> UserSession:
     """Dependency to get and validate session"""
     session = SessionService.get_session(session_id)
@@ -103,14 +109,17 @@ async def guess_password(
     )
 
     SessionService.update_guessing_progress(
-        session.session_id, chat_message.message, guess_response.guess
+        session.session_id,
+        chat_message.message,
+        guess_response.guess,
+        guess_response.thoughts,
     )
 
-    return {
-        "guess": guess_response.guess,
-        "thoughts": guess_response.thoughts,
-        "timestamp": datetime.utcnow().isoformat(),
-    }
+    return GuessResponse(
+        guess=guess_response.guess,
+        thoughts=guess_response.thoughts,
+        timestamp=datetime.utcnow().isoformat(),
+    )
 
 
 @router.post("/session/{session_id}/{uid}", response_model=ChatResponse)
