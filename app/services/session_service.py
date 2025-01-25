@@ -12,8 +12,6 @@ class SessionService(LoggerMixin):
     def create_session(cls) -> UserSession:
         """Create a new user session"""
         session = UserSession()
-        # Initialize first wagon
-        session.wagons[0] = WagonProgress(wagon_id=0, unlocked=True)
         cls._sessions[session.session_id] = session
         cls.get_logger().info("Created new session", extra={"session_id": session.session_id})
         return session
@@ -35,7 +33,7 @@ class SessionService(LoggerMixin):
         cls._sessions[session.session_id] = session
         cls.get_logger().debug("Updated session", extra={
             "session_id": session.session_id,
-            "current_wagon": session.current_wagon_id
+            "current_wagon": session.current_wagon.wagon_id
         })
 
     @classmethod
@@ -50,23 +48,23 @@ class SessionService(LoggerMixin):
             return None
 
         wagon_id = int(uid.split('-')[1])
-        if wagon_id not in session.wagons:
-            cls.get_logger().info("Initializing new wagon", extra={
+        if wagon_id != session.current_wagon.wagon_id:
+            cls.get_logger().error("Cannot add message - wrong wagon", extra={
                 "session_id": session_id,
-                "wagon_id": wagon_id
+                "uid": uid,
+                "current_wagon": session.current_wagon.wagon_id
             })
-            session.wagons[wagon_id] = WagonProgress(wagon_id=wagon_id, unlocked=True)
+            return None
 
-        wagon_progress = session.wagons[wagon_id]
-        if uid not in wagon_progress.conversations:
+        if uid not in session.current_wagon.conversations:
             cls.get_logger().info("Starting new conversation", extra={
                 "session_id": session_id,
                 "uid": uid,
                 "wagon_id": wagon_id
             })
-            wagon_progress.conversations[uid] = Conversation(uid=uid)
+            session.current_wagon.conversations[uid] = Conversation(uid=uid)
 
-        conversation = wagon_progress.conversations[uid]
+        conversation = session.current_wagon.conversations[uid]
         conversation.messages.append(message)
         conversation.last_interaction = datetime.utcnow()
         
@@ -91,14 +89,15 @@ class SessionService(LoggerMixin):
             return None
 
         wagon_id = int(uid.split('-')[1])
-        if wagon_id not in session.wagons:
-            cls.get_logger().warning("Wagon not found in session", extra={
+        if wagon_id != session.current_wagon.wagon_id:
+            cls.get_logger().warning("Cannot get conversation - wrong wagon", extra={
                 "session_id": session_id,
-                "wagon_id": wagon_id
+                "uid": uid,
+                "current_wagon": session.current_wagon.wagon_id
             })
             return None
 
-        conversation = session.wagons[wagon_id].conversations.get(uid)
+        conversation = session.current_wagon.conversations.get(uid)
         if conversation:
             cls.get_logger().debug("Retrieved conversation", extra={
                 "session_id": session_id,
@@ -114,7 +113,7 @@ class SessionService(LoggerMixin):
 
     @classmethod
     def advance_wagon(cls, session_id: str) -> bool:
-        """Advance to the next wagon and clear previous conversations"""
+        """Advance to the next wagon"""
         session = cls.get_session(session_id)
         if not session:
             cls.get_logger().error("Failed to advance wagon - session not found", extra={
@@ -134,23 +133,16 @@ class SessionService(LoggerMixin):
             })
             return False
 
-        next_wagon_id = session.current_wagon_id + 1
+        next_wagon_id = session.current_wagon.wagon_id + 1
         if next_wagon_id > max_wagon_id:
             cls.get_logger().warning("Cannot advance - already at last wagon", extra={
                 "session_id": session_id,
-                "current_wagon": session.current_wagon_id
+                "current_wagon": session.current_wagon.wagon_id
             })
             return False
 
-        if session.current_wagon_id in session.wagons:
-            del session.wagons[session.current_wagon_id]
-            cls.get_logger().info("Cleared previous wagon data", extra={
-                "session_id": session_id,
-                "cleared_wagon": session.current_wagon_id
-            })
-
-        session.current_wagon_id = next_wagon_id
-        session.wagons[next_wagon_id] = WagonProgress(wagon_id=next_wagon_id, unlocked=True)
+        # Set up next wagon
+        session.current_wagon = WagonProgress(wagon_id=next_wagon_id)
         cls.update_session(session)
         
         cls.get_logger().info("Advanced to next wagon", extra={
