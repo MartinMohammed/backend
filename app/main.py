@@ -108,7 +108,7 @@ async def log_requests(request: Request, call_next):
         raise
 
 # Include routers
-app.include_router(health.router, prefix="/api")
+app.include_router(health.router, prefix="")
 app.include_router(wagons.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
 app.include_router(players.router, prefix="/api")
