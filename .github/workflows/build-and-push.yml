@@ -49,6 +49,7 @@ jobs:
           echo "CLUSTER_NAME=game-jam-$ENV" >> $GITHUB_ENV
           echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
           echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$ENV" >> $GITHUB_ENV
 
       - name: Debug Environment
         run: |
@@ -57,6 +58,7 @@ jobs:
           echo "CLUSTER_NAME: ${{ env.CLUSTER_NAME }}"
           echo "SERVICE_NAME: ${{ env.SERVICE_NAME }}"
           echo "TASK_FAMILY: ${{ env.TASK_FAMILY }}"
+          echo "IMAGE_TAG: ${{ env.IMAGE_TAG }}"
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -66,7 +68,9 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
@@ -91,6 +95,7 @@ jobs:
           echo "CLUSTER_NAME=game-jam-$ENV" >> $GITHUB_ENV
           echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
           echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$ENV" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -98,6 +103,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Download Task Definition
         run: |
@@ -107,7 +116,7 @@ jobs:
 
       - name: Update Container Image in Task Definition
         run: |
-          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest" \
+          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}" \
             '.containerDefinitions[0].image = $IMAGE' \
             task-definition.json > updated-task-definition.json
 
