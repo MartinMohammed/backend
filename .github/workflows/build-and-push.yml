@@ -40,16 +40,23 @@ jobs:
         run: |
           # Set environment name based on branch
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "ENV=prod" >> $GITHUB_ENV
+            ENV="prod"
           else
-            echo "ENV=dev" >> $GITHUB_ENV
+            ENV="dev"
           fi
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=game-jam-$ENV" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=game-jam-$ENV" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
+          echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
 
-          # Set resource names using the same pattern as Terraform
-          echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
-          echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
-          echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
+      - name: Debug Environment
+        run: |
+          echo "ENV: ${{ env.ENV }}"
+          echo "ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}"
+          echo "CLUSTER_NAME: ${{ env.CLUSTER_NAME }}"
+          echo "SERVICE_NAME: ${{ env.SERVICE_NAME }}"
+          echo "TASK_FAMILY: ${{ env.TASK_FAMILY }}"
 
       - name: Build and push
         uses: docker/build-push-action@v5
@@ -74,16 +81,16 @@ jobs:
     steps:
       - name: Set Environment Variables
         run: |
-          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
-            echo "ENV=prod" >> $GITHUB_ENV
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            ENV="prod"
           else
-            echo "ENV=dev" >> $GITHUB_ENV
+            ENV="dev"
           fi
-
-          echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
-          echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
-          echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=game-jam-$ENV" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=game-jam-$ENV" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
+          echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -100,7 +107,7 @@ jobs:
 
       - name: Update Container Image in Task Definition
         run: |
-          jq --arg IMAGE "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest" \
+          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest" \
             '.containerDefinitions[0].image = $IMAGE' \
             task-definition.json > updated-task-definition.json
 
