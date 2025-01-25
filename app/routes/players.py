@@ -87,7 +87,9 @@ async def get_player_info(
     # Filter properties if specified
     result = filter_player_info(complete_player_info, properties)
     logger.info(f"Successfully retrieved player info for {player_id} in wagon {wagon_id}")
-    return result
+    return {
+        "players": [result]  # Wrap the single player info in a list within players field
+    }
 
 @router.get("/api/players/{wagon_id}")
 async def get_wagon_players(
@@ -116,7 +118,10 @@ async def get_wagon_players(
         logger.debug(f"Found {len(wagon_players)} players in wagon {wagon_id}")
         
         # Combine information for all players in the wagon
-        players_info = []
+        players_info = {
+            "players": []
+        }
+
         for player_id in wagon_players:
             logger.debug(f"Processing player {player_id} in wagon {wagon_id}")
             complete_info = {
@@ -128,7 +133,7 @@ async def get_wagon_players(
                 "dialogue": wagon_players[player_id].get("dialogue", {})
             }
             filtered_info = filter_player_info(complete_info, properties)
-            players_info.append(filtered_info)
+            players_info["players"].append(filtered_info)
         
         logger.info(f"Successfully retrieved all players for wagon {wagon_id}")
         return players_info
