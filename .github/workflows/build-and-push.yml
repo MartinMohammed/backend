@@ -66,7 +66,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.BASE_NAME }}:${{ env.ENV }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.BASE_NAME }}-${{ env.IMAGE_TAG }}:${{ env.IMAGE_TAG }}
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
@@ -113,7 +113,7 @@ jobs:
       - name: Update container image
         run: |
           # Update the container image in task definition
-          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}" \
+          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}-${{ env.IMAGE_TAG }}:${{ env.IMAGE_TAG }}" \
             '.containerDefinitions[0].image = $IMAGE' \
             task-definition.json > updated-task-definition.json
 
