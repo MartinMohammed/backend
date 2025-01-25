@@ -1,6 +1,5 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import Response
 from app.routes import health, wagons, chat, players
 from app.core.logging import get_logger
@@ -20,25 +19,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS
+# Configure CORS - Allow all origins and methods
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://a.therealfriends.de",
-        "http://localhost:3000",  # For local development
-        "http://localhost:5173",  # For Vite default port
-    ],
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["*"],
-    expose_headers=["*"],
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],  # Expose all headers
     max_age=3600,  # Cache preflight requests for 1 hour
-)
-
-# Add trusted hosts middleware
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["a.therealfriends.de", "localhost", "127.0.0.1"]
 )
 
 @app.middleware("http")
@@ -51,7 +40,7 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self' https://a.therealfriends.de"
+    response.headers["Content-Security-Policy"] = "default-src * 'unsafe-inline' 'unsafe-eval'; connect-src *"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
     
