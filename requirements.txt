@@ -1,7 +1,9 @@
-fastapi>=0.104.0
+fastapi[standard]>=0.104.0
 uvicorn[standard]>=0.24.0
 pydantic>=2.5.0
 python-jose[cryptography]>=3.3.0
 uuid>=1.30
 mistralai>=0.0.7
 python-dotenv>=1.0.0
+langchain>=0.3.15
+langchain-mistralai>=0.2.4
