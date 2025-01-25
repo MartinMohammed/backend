@@ -2,9 +2,11 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.services.session_service import SessionService
 from app.services.chat_service import ChatService
 from app.services.guess_service import GuessingService
+from app.services.tts_service import TTSService
 from app.models.session import Message, UserSession
 from datetime import datetime
 from pydantic import BaseModel
+import base64
 import logging
 
 
@@ -23,6 +25,7 @@ class GuessResponse(BaseModel):
 class ChatResponse(BaseModel):
     uid: str
     response: str
+    audio: str
     timestamp: str
 
 
@@ -34,14 +37,28 @@ class ChatHistoryResponse(BaseModel):
 def get_chat_service():
     return ChatService()
 
-
 def get_guess_service():
     return GuessingService()
+
+def get_tts_service():
+    return TTSService()
+
+# Adding pydantic models for responses
 
 
 # Request models
 class ChatMessage(BaseModel):
     message: str
+    theme: str
+    previous_guesses: list[str]
+    previous_indications: list[str]
+    current_indication: str
+
+
+class GuessResponse(BaseModel):
+    guess: str
+    thoughts: list[str]
+    timestamp: str
 
 
 def get_session(session_id: str) -> UserSession:
@@ -79,7 +96,6 @@ async def advance_to_next_wagon(session: UserSession = Depends(get_session)) -> 
         "current_wagon": session.current_wagon.wagon_id,
     }
 
-
 # Add depedency injection and response models
 @router.post("/session/{session_id}/guess", response_model=GuessResponse)
 async def guess_password(
@@ -116,6 +132,7 @@ async def chat_with_character(
     chat_message: ChatMessage,
     session: UserSession = Depends(get_session),
     chat_service: ChatService = Depends(get_chat_service),
+    tts_service: TTSService = Depends(get_tts_service),
 ) -> dict:
     """
     Send a message to a character and get their response.
@@ -142,6 +159,15 @@ async def chat_with_character(
     if not ai_response:
         raise HTTPException(status_code=500, detail="Failed to generate response")
 
+    # Generate audio from the response
+    try:
+        audio_bytes = tts_service.convert_text_to_speech(ai_response)
+        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+    except Exception as e:
+        logger.error(f"Failed to generate audio: {str(e)}")
+        # Continue with text response even if audio fails
+        audio_base64 = ""
+
     # Add AI response to conversation
     ai_message = Message(role="assistant", content=ai_response)
     SessionService.add_message(session.session_id, uid, ai_message)
@@ -149,9 +175,9 @@ async def chat_with_character(
     return {
         "uid": uid,
         "response": ai_response,
+        "audio": audio_base64,
         "timestamp": datetime.utcnow().isoformat(),
     }
-
 
 @router.get("/session/{session_id}/{uid}/history", response_model=ChatHistoryResponse)
 async def get_chat_history(
