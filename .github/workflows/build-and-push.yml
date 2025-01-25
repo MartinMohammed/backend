@@ -3,12 +3,8 @@ name: Build and Push to ECR
 on:
   push:
     branches: ["main", "dev"]
-    paths:
-      - "**"
   pull_request:
     branches: ["main", "dev"]
-    paths:
-      - "**"
 
 env:
   AWS_REGION: eu-central-1
@@ -45,14 +41,12 @@ jobs:
           # Set environment name based on branch
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             echo "ENV=prod" >> $GITHUB_ENV
-            echo "IMAGE_TAG=prod" >> $GITHUB_ENV
           else
             echo "ENV=dev" >> $GITHUB_ENV
-            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
           fi
 
           # Set resource names using the same pattern as Terraform
-          echo "ECR_REPOSITORY=${BASE_NAME}${ENV}" >> $GITHUB_ENV
+          echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
           echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
           echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
           echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
@@ -65,7 +59,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.BASE_NAME }}-${{ env.ENV }}:${{ env.ENV }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
@@ -75,29 +69,21 @@ jobs:
     name: ECS Deployment
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ needs.terraform.outputs.environment }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
+    steps:
       - name: Set Environment Variables
         run: |
           if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
             echo "ENV=prod" >> $GITHUB_ENV
-            echo "IMAGE_TAG=prod" >> $GITHUB_ENV
           else
             echo "ENV=dev" >> $GITHUB_ENV
-            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
           fi
 
-          echo "ECR_REPOSITORY=${{ env.BASE_NAME }}-${{ env.ENV }}" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=${{ env.BASE_NAME }}-${{ env.ENV }}" >> $GITHUB_ENV
-          echo "SERVICE_NAME=app-service-${{ env.ENV }}" >> $GITHUB_ENV
-          echo "TASK_FAMILY=${{ env.BASE_NAME }}-task-${{ env.ENV }}" >> $GITHUB_ENV
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
+          echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
+          echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -114,7 +100,7 @@ jobs:
 
       - name: Update Container Image in Task Definition
         run: |
-          jq --arg IMAGE "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}" \
+          jq --arg IMAGE "${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest" \
             '.containerDefinitions[0].image = $IMAGE' \
             task-definition.json > updated-task-definition.json
 
