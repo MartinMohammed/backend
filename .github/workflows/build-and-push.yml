@@ -2,48 +2,31 @@ name: Build and Push to ECR
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "dev"]
     paths:
       - "**"
   pull_request:
-    branches: ["main"]
+    branches: ["main", "dev"]
     paths:
       - "**"
 
 env:
   AWS_REGION: eu-central-1
-  ECS_CLUSTER: fastapi-ecs-cluster
-  ECS_SERVICE: fastapi-service
-  CONTAINER_NAME: fastapi-service
+  BASE_NAME: game-jam
+
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
-    environment: dev
-
-    permissions:
-      contents: read
-      id-token: write
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
     steps:
-      - name: Debug Information
-        run: |
-          echo "GitHub Ref: ${{ github.ref }}"
-          echo "GitHub Event Name: ${{ github.event_name }}"
-          echo "Working Directory: ${{ github.workspace }}"
-          ls -la
-          pwd
-
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Debug After Checkout
-        run: |
-          echo "Repository contents:"
-          ls -la
-          echo "Dockerfile location:"
-          find . -name "Dockerfile"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -56,26 +39,36 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Remove latest tag if exists
+      - name: Set environment variables
+        id: env-vars
         run: |
-          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
-          if [ ! -z "$MANIFEST" ]; then
-            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest
-            echo "Removed latest tag"
+          # Set environment name based on branch
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+            echo "IMAGE_TAG=prod" >> $GITHUB_ENV
           else
-            echo "No latest tag found"
+            echo "ENV=dev" >> $GITHUB_ENV
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
           fi
+
+          # Set resource names using the same pattern as Terraform
+          echo "ECR_REPOSITORY=${BASE_NAME}${ENV}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
+          echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
 
       - name: Build and push
         uses: docker/build-push-action@v5
+
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:latest
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.BASE_NAME }}-${{ env.ENV }}:${{ env.ENV }}
+          build-args: |
+            ENV=${{ env.ENV }}
           provenance: false
           sbom: false
 
@@ -83,31 +76,61 @@ jobs:
     name: Deploy to ECS
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment: dev
-    if: github.ref == 'refs/heads/main' # Only deploy on main branch
-
-    permissions:
-      contents: read
-      id-token: write
-
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
+      - name: Set environment variables
+        id: env-vars
+        run: |
+          # Set environment name based on branch
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+            echo "IMAGE_TAG=prod" >> $GITHUB_ENV
+          else
+            echo "ENV=dev" >> $GITHUB_ENV
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
+          fi
+
+          # Set resource names using the same pattern as Terraform
+          echo "ECR_REPOSITORY=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=${BASE_NAME}-${ENV}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-${ENV}" >> $GITHUB_ENV
+          echo "TASK_FAMILY=${BASE_NAME}-task-${ENV}" >> $GITHUB_ENV
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.TASK_FAMILY }} \
+            --query taskDefinition > task-definition.json
+
+      - name: Update container image
+        run: |
+          # Update the container image in task definition
+          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}-${{ env.ENV }}:${{ env.ENV }}" \
+            '.containerDefinitions[0].image = $IMAGE' \
+            task-definition.json > updated-task-definition.json
+
+      - name: Register new task definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://updated-task-definition.json
 
       - name: Update ECS service
         run: |
-          # Force new deployment of ECS service
           aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE }} \
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --service ${{ env.SERVICE_NAME }} \
+            --task-definition ${{ env.TASK_FAMILY }} \
             --force-new-deployment
 
       - name: Wait for service stability
         run: |
           aws ecs wait services-stable \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }}
+            --cluster ${{ env.CLUSTER_NAME }} \
+            --services ${{ env.SERVICE_NAME }}

@@ -2,20 +2,17 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import health, wagons, chat, players
 from app.core.logging import setup_logging, get_logger
-from dotenv import load_dotenv
+from app.core.config import settings
 from datetime import datetime
 import time
 
-
-# Load environment variables
-load_dotenv()
 
 # Setup logging
 setup_logging()
 logger = get_logger("main")
 
 app = FastAPI(
-    title="Game Jam API",
+    title=settings.PROJECT_NAME,
     description="""
     Game Jam Hackathon API provides endpoints for managing wagon-based gameplay, including:
     
@@ -34,7 +31,7 @@ app = FastAPI(
     version="1.0.0",
     contact={
         "name": "Game Jam Team",
-        "url": "https://github.com/yourusername/game-jam-hackathon",  # Replace with actual repo URL
+        "url": "https://github.com/yourusername/game-jam-hackathon",
     },
     license_info={
         "name": "MIT",
@@ -57,15 +54,15 @@ app = FastAPI(
             "description": "Player profile and inventory management",
         },
     ],
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
-    openapi_url="/api/openapi.json"
+    docs_url=f"{settings.API_V1_STR}/docs",
+    redoc_url=f"{settings.API_V1_STR}/redoc",
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -83,7 +80,8 @@ async def log_requests(request: Request, call_next):
             "method": request.method,
             "url": str(request.url),
             "client_host": request.client.host if request.client else None,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
+            "environment": settings.ENV
         }
     )
     
@@ -99,7 +97,8 @@ async def log_requests(request: Request, call_next):
                 "method": request.method,
                 "url": str(request.url),
                 "status_code": response.status_code,
-                "process_time_ms": round(process_time * 1000, 2)
+                "process_time_ms": round(process_time * 1000, 2),
+                "environment": settings.ENV
             }
         )
         return response
@@ -111,26 +110,28 @@ async def log_requests(request: Request, call_next):
             extra={
                 "method": request.method,
                 "url": str(request.url),
-                "error": str(e)
+                "error": str(e),
+                "environment": settings.ENV
             }
         )
         raise
 
 # Include routers
-app.include_router(health.router)
-app.include_router(wagons.router)
-app.include_router(chat.router)
-app.include_router(players.router)
+app.include_router(health.router, prefix=settings.API_V1_STR)
+app.include_router(wagons.router, prefix=settings.API_V1_STR)
+app.include_router(chat.router, prefix=settings.API_V1_STR)
+app.include_router(players.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 async def root():
-    logger.info("Root endpoint accessed")
+    logger.info("Root endpoint accessed", extra={"environment": settings.ENV})
     return {
-        "message": "Welcome to Game Jam API",
-        "docs_url": "/docs",
-        "health_check": "/health",
-        "wagons_endpoint": "/api/wagons",
-        "chat_endpoint": "/api/chat",
-        "players_endpoint": "/api/players"
+        "message": f"Welcome to {settings.PROJECT_NAME}",
+        "environment": settings.ENV,
+        "docs_url": f"{settings.API_V1_STR}/docs",
+        "health_check": f"{settings.API_V1_STR}/health",
+        "wagons_endpoint": f"{settings.API_V1_STR}/wagons",
+        "chat_endpoint": f"{settings.API_V1_STR}/chat",
+        "players_endpoint": f"{settings.API_V1_STR}/players"
     }
 
