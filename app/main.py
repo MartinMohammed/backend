@@ -128,7 +128,7 @@ async def root():
         "health_check": "/api/health",
         "wagons_endpoint": "/api/wagons",
         "chat_endpoint": "/api/chat",
-        "players_endpoint": "/api/players"
+        "players_endpoint": "/api/players", 
         "message": "Welcome to Game Jam Hackathon API",
         "docs_url": "api/docs",
         "health_check": "/health",
