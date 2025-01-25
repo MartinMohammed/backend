@@ -23,16 +23,13 @@ class Settings(BaseSettings):
     # Environment-specific settings
     env_settings: Dict[str, Dict[str, Any]] = {
         "dev": {
-            "cors_origins": ["*"],
+            "cors_origins": ["*"],  # Allow all origins in dev
             "log_level": "DEBUG",
             "api_timeout": 30,
             "max_requests_per_minute": 100,
         },
         "prod": {
-            "cors_origins": [
-                "https://game-jam-prod.yourdomain.com",
-                "https://api.game-jam-prod.yourdomain.com"
-            ],
+            "cors_origins": ["*"],  # ALB handles security in prod
             "log_level": "INFO",
             "api_timeout": 15,
             "max_requests_per_minute": 200,
