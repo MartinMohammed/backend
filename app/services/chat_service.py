@@ -95,6 +95,7 @@ class ChatService(LoggerMixin):
                 "character_details_keys": list(self.character_details.keys()) if self.character_details else None
             })
             return None
+        
 
     def _create_character_prompt(self, character: Dict) -> str:
         """Create a prompt that describes the character's personality and context"""
