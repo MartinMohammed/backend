@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 
 router = APIRouter(
-    prefix="/wagons",
+    prefix="/api/wagons",
     tags=["wagons"]
 )
 

@@ -6,7 +6,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 router = APIRouter(
-    prefix="/chat",
+    prefix="/api/chat",
     tags=["chat"]
 )
 

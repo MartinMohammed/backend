@@ -2,8 +2,6 @@ import logging
 import json
 from datetime import datetime
 import os
-import sys
-from logging.handlers import RotatingFileHandler
 
 class JSONFormatter(logging.Formatter):
     """Custom JSON formatter for structured logging"""
@@ -27,47 +25,26 @@ class JSONFormatter(logging.Formatter):
 
         return json.dumps(log_data)
 
-def setup_logging():
-    """Configure logging"""
-    
+def setup_logging() -> None:
+    """Configure logging for the application"""
     # Create logs directory if it doesn't exist
-    log_dir = "logs"
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
+    os.makedirs("logs", exist_ok=True)
     
-    # Set up basic configuration
-    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-    
-    # Configure root logger
-    logging.basicConfig(
-        level=log_level,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        datefmt='%H:%M:%S',
-        handlers=[
-            # Console handler
-            logging.StreamHandler(sys.stdout),
-            # File handler with rotation
-            RotatingFileHandler(
-                f"{log_dir}/app.log",
-                maxBytes=10485760,  # 10MB
-                backupCount=5,
-                encoding="utf-8"
-            )
-        ]
-    )
-    
-    # Set third-party loggers to WARNING
-    for logger_name in ["uvicorn", "gunicorn", "fastapi"]:
-        logging.getLogger(logger_name).setLevel(logging.WARNING)
-    
-    # Create logger for the application
-    logger = logging.getLogger("game-jam")
-    logger.setLevel(log_level)
-    
-    return logger
+    logger = logging.getLogger("game_jam")
+    logger.setLevel(logging.INFO)
 
-# Create the logger instance
-logger = setup_logging()
+    # Console handler with JSON formatting
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(JSONFormatter())
+    logger.addHandler(console_handler)
+
+    # File handler for persistent logs
+    file_handler = logging.FileHandler("logs/game_jam.log")
+    file_handler.setFormatter(JSONFormatter())
+    logger.addHandler(file_handler)
+
+    # Prevent propagation to root logger
+    logger.propagate = False
 
 def get_logger(name: str) -> logging.Logger:
     """Get a logger instance with the given name"""
