@@ -195,4 +195,23 @@ class SessionService(LoggerMixin):
             del cls._sessions[session_id]
             cls.get_logger().info("Cleaned up old session", extra={
                 "session_id": session_id
+            })
+
+    @classmethod
+    def terminate_session(cls, session_id: str) -> None:
+        """Terminate a session and clean up its resources"""
+        session = cls.get_session(session_id)
+        if not session:
+            cls.get_logger().warning("Attempted to terminate non-existent session", extra={
+                "session_id": session_id
+            })
+            return
+
+        # Clean up session data
+        if session_id in cls._sessions:
+            del cls._sessions[session_id]
+            cls.get_logger().info("Session terminated", extra={
+                "session_id": session_id,
+                "terminated_at": datetime.utcnow().isoformat(),
+                "final_wagon": session.current_wagon.wagon_id
             }) 
