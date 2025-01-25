@@ -46,6 +46,7 @@ async def advance_to_next_wagon(session: UserSession = Depends(get_session)) -> 
 @router.post("/session/{session_id}/{uid}")
 async def chat_with_character(
     uid: str,
+    # When inheriting from BaseModel, the request body is automatically validated
     chat_message: ChatMessage,
     session: UserSession = Depends(get_session)
 ) -> dict:

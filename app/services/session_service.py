@@ -5,12 +5,15 @@ from app.core.logging import LoggerMixin
 import json
 from pathlib import Path
 
+# used as dependency injection for the session service
 class SessionService(LoggerMixin):
+    # dictionary to store all the sessions
     _sessions: Dict[str, UserSession] = {}
 
     @classmethod
     def create_session(cls) -> UserSession:
         """Create a new user session"""
+        # create a new session and store it in the dictionary
         session = UserSession()
         cls._sessions[session.session_id] = session
         cls.get_logger().info("Created new session", extra={"session_id": session.session_id})
@@ -19,6 +22,7 @@ class SessionService(LoggerMixin):
     @classmethod
     def get_session(cls, session_id: str) -> Optional[UserSession]:
         """Get an existing session by ID"""
+        # get the session from the dictionary
         session = cls._sessions.get(session_id)
         if session:
             cls.get_logger().debug("Retrieved session", extra={"session_id": session_id})
@@ -29,7 +33,9 @@ class SessionService(LoggerMixin):
     @classmethod
     def update_session(cls, session: UserSession) -> None:
         """Update a session's last active timestamp"""
+        # update the last active timestamp
         session.last_active = datetime.utcnow()
+        # update the session in the dictionary by overriding the existing session
         cls._sessions[session.session_id] = session
         cls.get_logger().debug("Updated session", extra={
             "session_id": session.session_id,
@@ -39,7 +45,9 @@ class SessionService(LoggerMixin):
     @classmethod
     def add_message(cls, session_id: str, uid: str, message: Message) -> Optional[Conversation]:
         """Add a message to a character's conversation"""
+        # get the session from the dictionary
         session = cls.get_session(session_id)
+        # check if the session exists
         if not session:
             cls.get_logger().error("Failed to add message - session not found", extra={
                 "session_id": session_id,
@@ -47,7 +55,12 @@ class SessionService(LoggerMixin):
             })
             return None
 
+        # get the wagon id from the uid
+        # uuid is in the format of wagon-<i>-player-<k>
         wagon_id = int(uid.split('-')[1])
+        # check if the wagon id is the same as the current wagon id
+        # if the wagon id is not the same, client is trying to access a different wagon
+        # which might indicate out of sync in wagon.
         if wagon_id != session.current_wagon.wagon_id:
             cls.get_logger().error("Cannot add message - wrong wagon", extra={
                 "session_id": session_id,
@@ -56,6 +69,7 @@ class SessionService(LoggerMixin):
             })
             return None
 
+        # in case we have not started a conversation with this character yet, start one
         if uid not in session.current_wagon.conversations:
             cls.get_logger().info("Starting new conversation", extra={
                 "session_id": session_id,
@@ -64,6 +78,7 @@ class SessionService(LoggerMixin):
             })
             session.current_wagon.conversations[uid] = Conversation(uid=uid)
 
+        # add the message of the client to the conversation with the new player
         conversation = session.current_wagon.conversations[uid]
         conversation.messages.append(message)
         conversation.last_interaction = datetime.utcnow()
@@ -81,6 +96,7 @@ class SessionService(LoggerMixin):
     def get_conversation(cls, session_id: str, uid: str) -> Optional[Conversation]:
         """Get a conversation with a specific character"""
         session = cls.get_session(session_id)
+        # check if the session exists
         if not session:
             cls.get_logger().error("Failed to get conversation - session not found", extra={
                 "session_id": session_id,
@@ -88,7 +104,12 @@ class SessionService(LoggerMixin):
             })
             return None
 
+        # get the wagon id from the uid
+        # uuid is in the format of wagon-<i>-player-<k>
         wagon_id = int(uid.split('-')[1])
+        # check if the wagon id is the same as the current wagon id
+        # if the wagon id is not the same, client is trying to access a different wagon
+        # which might indicate out of sync in wagon.
         if wagon_id != session.current_wagon.wagon_id:
             cls.get_logger().warning("Cannot get conversation - wrong wagon", extra={
                 "session_id": session_id,
@@ -97,6 +118,7 @@ class SessionService(LoggerMixin):
             })
             return None
 
+        # get the conversation from the current wagon
         conversation = session.current_wagon.conversations.get(uid)
         if conversation:
             cls.get_logger().debug("Retrieved conversation", extra={
@@ -125,6 +147,7 @@ class SessionService(LoggerMixin):
         try:
             with open(wagons_file, "r") as f:
                 wagons_data = json.load(f)
+                # we start counting from 0, max_wagon_id is the last wagon id
                 max_wagon_id = len(wagons_data["wagons"]) - 1
         except Exception as e:
             cls.get_logger().error("Failed to read wagons data", extra={
@@ -133,7 +156,9 @@ class SessionService(LoggerMixin):
             })
             return False
 
+        # advance to the next wagon
         next_wagon_id = session.current_wagon.wagon_id + 1
+        # check if we are out of bounds 
         if next_wagon_id > max_wagon_id:
             cls.get_logger().warning("Cannot advance - already at last wagon", extra={
                 "session_id": session_id,
