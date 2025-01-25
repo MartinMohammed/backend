@@ -5,12 +5,16 @@ on:
     branches:
       - "main"
     paths:
-      - "backend/**" # Only trigger if changes are in backend directory
+      - "backend/**"
+      - "backend/.github/workflows/**" # Include workflow changes
   pull_request:
     branches:
       - "main"
     paths:
-      - "backend/**" # Only trigger if changes are in backend directory
+      - "backend/**"
+      - "backend/.github/workflows/**" # Include workflow changes
+  # Add workflow_dispatch to allow manual triggers
+  workflow_dispatch:
 
 env:
   AWS_REGION: eu-central-1
