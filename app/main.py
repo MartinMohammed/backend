@@ -9,7 +9,7 @@ import time
 logger = get_logger("main")
 
 app = FastAPI(
-    title="Game Jam API",
+    title="Game Jam Hackathon API",
     description="""
     Game Jam Hackathon API provides endpoints for managing wagon-based gameplay, including:
     
@@ -50,7 +50,10 @@ app = FastAPI(
             "name": "players",
             "description": "Player profile and inventory management",
         },
-    ]
+    ],
+    docs_url="api/docs",
+    redoc_url="api/redoc",
+    openapi_url="api/openapi.json"
 )
 
 # Configure CORS
@@ -74,7 +77,7 @@ async def log_requests(request: Request, call_next):
             "method": request.method,
             "url": str(request.url),
             "client_host": request.client.host if request.client else None,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
     )
     
@@ -90,7 +93,7 @@ async def log_requests(request: Request, call_next):
                 "method": request.method,
                 "url": str(request.url),
                 "status_code": response.status_code,
-                "process_time_ms": round(process_time * 1000, 2)
+                "process_time_ms": round(process_time * 1000, 2),
             }
         )
         return response
@@ -102,19 +105,23 @@ async def log_requests(request: Request, call_next):
             extra={
                 "method": request.method,
                 "url": str(request.url),
-                "error": str(e)
+                "error": str(e),
             }
         )
         raise
 
 # Include routers
-app.include_router(health.router, prefix="")
-app.include_router(wagons.router, prefix="/api")
-app.include_router(chat.router, prefix="/api")
-app.include_router(players.router, prefix="/api")
+# Health check at root level for AWS health checks
+app.include_router(health.router, prefix="/health", tags=["health"])
+
+# API routes with /api prefix
+app.include_router(wagons.router, prefix="/api/wagons", tags=["wagons"])
+app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(players.router, prefix="/api/players", tags=["players"])
 
 @app.get("/")
 async def root():
+    logger.info("Root endpoint accessed")
     return {
         "message": "Welcome to Game Jam API",
         "docs_url": "/api/docs",
@@ -122,5 +129,11 @@ async def root():
         "wagons_endpoint": "/api/wagons",
         "chat_endpoint": "/api/chat",
         "players_endpoint": "/api/players"
+        "message": "Welcome to Game Jam Hackathon API",
+        "docs_url": "api/docs",
+        "health_check": "/health",
+        "wagons_endpoint": "api/wagons",
+        "chat_endpoint": "api/chat",
+        "players_endpoint": "api/players"
     }
 
