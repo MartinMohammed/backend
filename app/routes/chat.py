@@ -12,6 +12,7 @@ router = APIRouter(
 
 chat_service = ChatService()
 
+
 # Request models
 class ChatMessage(BaseModel):
     message: str
