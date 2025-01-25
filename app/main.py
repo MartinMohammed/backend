@@ -1,17 +1,15 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import health, wagons, chat, players
-from app.core.logging import setup_logging, get_logger
+from app.core.logging import get_logger
 from dotenv import load_dotenv
 from datetime import datetime
 import time
-
 
 # Load environment variables
 load_dotenv()
 
 # Setup logging
-setup_logging()
 logger = get_logger("main")
 
 app = FastAPI(
@@ -80,6 +78,7 @@ app.include_router(wagons.router)
 app.include_router(chat.router)
 app.include_router(players.router)
 
+
 @app.get("/")
 async def root():
     logger.info("Root endpoint accessed")
@@ -91,4 +90,3 @@ async def root():
         "chat_endpoint": "/api/chat",
         "players_endpoint": "/api/players"
     }
-

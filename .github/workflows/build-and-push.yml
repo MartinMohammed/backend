@@ -2,64 +2,65 @@ name: Build and Push to ECR
 
 on:
   push:
-    branches: ["main"]
-    paths:
-      - "**"
+    branches: ["main", "dev"]
   pull_request:
-    branches: ["main"]
-    paths:
-      - "**"
+    branches: ["main", "dev"]
 
-env:
-  AWS_REGION: eu-central-1
-  ECS_CLUSTER: fastapi-ecs-cluster
-  ECS_SERVICE: fastapi-service
-  CONTAINER_NAME: fastapi-service
+permissions:
+  contents: read
+  id-token: write
 
 jobs:
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
-    environment: dev
-
-    permissions:
-      contents: read
-      id-token: write
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
     steps:
-      - name: Debug Information
-        run: |
-          echo "GitHub Ref: ${{ github.ref }}"
-          echo "GitHub Event Name: ${{ github.event_name }}"
-          echo "Working Directory: ${{ github.workspace }}"
-          ls -la
-          pwd
-
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Debug After Checkout
-        run: |
-          echo "Repository contents:"
-          ls -la
-          echo "Dockerfile location:"
-          find . -name "Dockerfile"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Remove latest tag if exists
+      - name: Set environment variables
+        id: env-vars
         run: |
-          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
+          # Set environment name based on branch
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            ENV="prod"
+          else
+            ENV="dev"
+          fi
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
+          echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
+
+      - name: Remove existing tag if exists
+        run: |
+          # Try to remove both the environment tag and latest tag
+          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }} --query 'images[].imageManifest' --output text || true)
           if [ ! -z "$MANIFEST" ]; then
+            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }}
+            echo "Removed ${{ env.ENV }} tag"
+          else
+            echo "No ${{ env.ENV }} tag found"
+
+          fi
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
+          echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
+
+          LATEST_MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
+          if [ ! -z "$LATEST_MANIFEST" ]; then
             aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest
             echo "Removed latest tag"
           else
@@ -68,46 +69,81 @@ jobs:
 
       - name: Build and push
         uses: docker/build-push-action@v5
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:latest
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV }}
+          build-args: |
+            ENV=${{ env.ENV }}
           provenance: false
           sbom: false
 
   deploy:
-    name: Deploy to ECS
+    name: ECS Deployment
     needs: build-and-push
     runs-on: ubuntu-latest
-    environment: dev
-    if: github.ref == 'refs/heads/main' # Only deploy on main branch
-
-    permissions:
-      contents: read
-      id-token: write
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
     steps:
-      - name: Configure AWS credentials
+      - name: Set Environment varsiables
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            ENV="prod"
+          else
+            ENV="dev"
+          fi
+          echo "ENV=$ENV" >> $GITHUB_ENV
+          echo "SERVICE_NAME=app-service-$ENV" >> $GITHUB_ENV
+          echo "TASK_FAMILY=game-jam-task-$ENV" >> $GITHUB_ENV
+
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Update ECS service
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Download and Process Task Definition
         run: |
-          # Force new deployment of ECS service
+          # Get the current task definition
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.TASK_FAMILY }} \
+            --query 'taskDefinition' > task-definition-full.json
+
+          # Extract only the needed fields and update the image
+          jq '{
+            family: .family,
+            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV }}"}],
+            executionRoleArn: .executionRoleArn,
+            taskRoleArn: .taskRoleArn,
+            networkMode: .networkMode,
+            volumes: .volumes,
+            placementConstraints: .placementConstraints,
+            requiresCompatibilities: .requiresCompatibilities,
+            cpu: .cpu,
+            memory: .memory
+          }' task-definition-full.json > task-definition.json
+
+      - name: Register New Task Definition
+        id: register-task
+        run: |
+          register_output=$(aws ecs register-task-definition --cli-input-json file://task-definition.json)
+          echo "task_arn=$(echo $register_output | jq -r '.taskDefinition.taskDefinitionArn')" >> $GITHUB_OUTPUT
+
+      - name: Update ECS Service with New Task Definition
+        run: |
           aws ecs update-service \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --service ${{ env.ECS_SERVICE }} \
+            --cluster ${{ vars.ECR_REPOSITORY }}-cluster \
+            --service ${{ env.SERVICE_NAME }} \
+            --task-definition ${{ steps.register-task.outputs.task_arn }} \
             --force-new-deployment
 
-      - name: Wait for service stability
+      - name: Wait for ECS Service to Stabilize
         run: |
           aws ecs wait services-stable \
-            --cluster ${{ env.ECS_CLUSTER }} \
-            --services ${{ env.ECS_SERVICE }}
+            --cluster ${{ vars.ECR_REPOSITORY }}-cluster \
+            --services ${{ env.SERVICE_NAME }}

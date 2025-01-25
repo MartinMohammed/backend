@@ -5,6 +5,7 @@ from pathlib import Path
 from app.core.logging import get_logger
 
 router = APIRouter()
+
 logger = get_logger("players")
 
 def load_json_file(file_path: str) -> dict:
@@ -25,6 +26,8 @@ def filter_player_info(complete_info: dict, properties: List[str] = None) -> dic
         return complete_info
     
     filtered_info = {}
+    # Add the id to the filtered info
+    filtered_info["id"] = complete_info["id"]
     valid_properties = {"name_info", "profile", "traits", "inventory", "dialogue"}
     
     logger.info(f"Filtering properties: {properties}")
@@ -87,9 +90,7 @@ async def get_player_info(
     # Filter properties if specified
     result = filter_player_info(complete_player_info, properties)
     logger.info(f"Successfully retrieved player info for {player_id} in wagon {wagon_id}")
-    return {
-        "players": [result]  # Wrap the single player info in a list within players field
-    }
+    return result
 
 @router.get("/api/players/{wagon_id}")
 async def get_wagon_players(
@@ -118,10 +119,7 @@ async def get_wagon_players(
         logger.debug(f"Found {len(wagon_players)} players in wagon {wagon_id}")
         
         # Combine information for all players in the wagon
-        players_info = {
-            "players": []
-        }
-
+        players_info = []
         for player_id in wagon_players:
             logger.debug(f"Processing player {player_id} in wagon {wagon_id}")
             complete_info = {
@@ -133,10 +131,10 @@ async def get_wagon_players(
                 "dialogue": wagon_players[player_id].get("dialogue", {})
             }
             filtered_info = filter_player_info(complete_info, properties)
-            players_info["players"].append(filtered_info)
+            players_info.append(filtered_info)
         
         logger.info(f"Successfully retrieved all players for wagon {wagon_id}")
-        return players_info
+        return {"players": players_info}
     except KeyError:
         logger.error(f"Wagon not found: wagon_id={wagon_id}")
         raise HTTPException(status_code=404, detail="Wagon not found") 
