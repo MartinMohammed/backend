@@ -64,7 +64,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REGISTRY }}:${{ env.ENV }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REGISTRY }}:${{ env.ENV }}
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
