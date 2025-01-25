@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import health, wagons, chat
+from app.routes import health, wagons, chat, players
 from app.core.logging import setup_logging, get_logger
 from dotenv import load_dotenv
 from datetime import datetime
@@ -77,6 +77,7 @@ async def log_requests(request: Request, call_next):
 app.include_router(health.router)
 app.include_router(wagons.router)
 app.include_router(chat.router)
+app.include_router(players.router)
 
 @app.get("/")
 async def root():
@@ -86,6 +87,7 @@ async def root():
         "docs_url": "/docs",
         "health_check": "/health",
         "wagons_endpoint": "/api/wagons",
-        "chat_endpoint": "/api/chat"
+        "chat_endpoint": "/api/chat",
+        "players_endpoint": "/api/players"
     }
 
