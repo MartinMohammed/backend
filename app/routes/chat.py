@@ -5,15 +5,41 @@ from app.services.guess_service import GuessingService
 from app.models.session import Message, UserSession
 from datetime import datetime
 from pydantic import BaseModel
+import logging
+
+
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/chat",
     tags=["chat"]
 )
 
-chat_service = ChatService()
-guess_service = GuessingService()
+# Replace service initialization with dependency injection
+class GuessResponse(BaseModel):
+    guess: str
+    thoughts: str
+    timestamp: str
 
+class ChatResponse(BaseModel):
+    uid: str
+    response: str
+    timestamp: str
+
+class ChatHistoryResponse(BaseModel):
+    uid: str
+    messages: list[dict]
+
+
+
+def get_chat_service():
+    return ChatService()
+
+def get_guess_service():
+    return GuessingService()
+
+# Adding pydantic models for responses
 
 
 # Request models
@@ -32,7 +58,9 @@ def get_session(session_id: str) -> UserSession:
 @router.post("/session")
 async def create_session() -> UserSession:
     """Create a new user session"""
-    return SessionService.create_session()
+    session = SessionService.create_session()
+    logger.info(f"New session created: {session.session_id}")
+    return session
 
 
 @router.get("/session/{session_id}")
@@ -54,10 +82,12 @@ async def advance_to_next_wagon(session: UserSession = Depends(get_session)) -> 
         "current_wagon": session.current_wagon.wagon_id,
     }
 
-
-@router.post("/session/{session_id}/guess")
+# Add depedency injection and response models
+@router.post("/session/{session_id}/guess", response_model=GuessResponse)
 async def guess_password(
-    chat_message: ChatMessage, session: UserSession = Depends(get_session)
+    chat_message: ChatMessage,
+    session: UserSession = Depends(get_session),
+    guess_service: GuessingService = Depends(get_guess_service),
 ) -> dict:
     guessing_progress = SessionService.get_guessing_progress(session.session_id)
 
@@ -65,7 +95,7 @@ async def guess_password(
         previous_guesses=guessing_progress.guesses,
         theme="A business of Gold",
         previous_indications=guessing_progress.indications,
-        current_indication=chat_message,
+        current_indication=chat_message.message,
     )
 
     SessionService.update_guessing_progress(
@@ -79,17 +109,14 @@ async def guess_password(
     }
 
 
-@router.post("/session/{session_id}/{uid}")
+@router.post("/session/{session_id}/{uid}", response_model=ChatResponse)
 async def chat_with_character(
     uid: str,
-    # When inheriting from BaseModel, the request body is automatically validated
     chat_message: ChatMessage,
     session: UserSession = Depends(get_session),
+    chat_service: ChatService = Depends(get_chat_service),
 ) -> dict:
-    """Send a message to a character and get their response"""
-    # Validate uid format
     try:
-        # You need to be in the wagon to chat with the player
         wagon_id = int(uid.split("-")[1])
         if wagon_id != session.current_wagon.wagon_id:
             raise HTTPException(
@@ -99,19 +126,16 @@ async def chat_with_character(
     except (IndexError, ValueError):
         raise HTTPException(status_code=400, detail="Invalid UID format")
 
-    # Add user message to conversation
     user_message = Message(role="user", content=chat_message.message)
     conversation = SessionService.add_message(session.session_id, uid, user_message)
 
     if not conversation:
         raise HTTPException(status_code=500, detail="Failed to process message")
 
-    # Generate AI response
     ai_response = chat_service.generate_response(uid, conversation)
     if not ai_response:
         raise HTTPException(status_code=500, detail="Failed to generate response")
 
-    # Add AI response to conversation
     ai_message = Message(role="assistant", content=ai_response)
     SessionService.add_message(session.session_id, uid, ai_message)
 
@@ -122,11 +146,10 @@ async def chat_with_character(
     }
 
 
-@router.get("/session/{session_id}/{uid}/history")
+@router.get("/session/{session_id}/{uid}/history", response_model=ChatHistoryResponse)
 async def get_chat_history(
     uid: str, session: UserSession = Depends(get_session)
 ) -> dict:
-    """Get the chat history with a specific character"""
     conversation = SessionService.get_conversation(session.session_id, uid)
     if not conversation:
         return {"uid": uid, "messages": []}
