@@ -15,13 +15,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 
-# Replace service initialization with dependency injection
-class GuessResponse(BaseModel):
-    guess: str
-    thoughts: str
-    timestamp: str
-
-
 class ChatResponse(BaseModel):
     uid: str
     response: str
@@ -43,22 +36,10 @@ def get_guess_service():
 def get_tts_service():
     return TTSService()
 
-# Adding pydantic models for responses
-
 
 # Request models
 class ChatMessage(BaseModel):
     message: str
-    theme: str
-    previous_guesses: list[str]
-    previous_indications: list[str]
-    current_indication: str
-
-
-class GuessResponse(BaseModel):
-    guess: str
-    thoughts: list[str]
-    timestamp: str
 
 
 def get_session(session_id: str) -> UserSession:
@@ -121,7 +102,6 @@ async def guess_password(
 
     return GuessResponse(
         guess=guess_response.guess,
-        thoughts=guess_response.thoughts,
         timestamp=datetime.utcnow().isoformat(),
     )
 
