@@ -10,8 +10,8 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
 class GuessResponse(BaseModel):
     guess: str = Field(description="A one-word guess for the password related theme")
-    thoughts: list[str] = Field(
-        title="Thoughts spoken out loud leading to the password guess"
+    thoughts: str = Field(
+        description="Thoughts spoken out loud leading to the password guess"
     )
 
 
