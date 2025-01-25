@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 
 router = APIRouter(
-    prefix="/api/chat",
+    prefix="/health",
     tags=["chat"]
 )
 
