@@ -2,7 +2,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.services.session_service import SessionService
 from app.services.chat_service import ChatService
 from app.models.session import Message, UserSession
-from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -114,4 +113,20 @@ async def get_chat_history(
             }
             for msg in conversation.messages
         ]
-    } 
+    }
+
+@router.delete("/session/{session_id}")
+async def terminate_session(session: UserSession = Depends(get_session)) -> dict:
+    """Terminate a chat session and clean up resources"""
+    try:
+        SessionService.terminate_session(session.session_id)
+        return {
+            "message": "Session terminated successfully",
+            "session_id": session.session_id,
+            "terminated_at": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to terminate session: {str(e)}"
+        ) 
