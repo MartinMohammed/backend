@@ -108,22 +108,31 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Download Task Definition
+      - name: Download and Process Task Definition
         run: |
+          # Get the current task definition
           aws ecs describe-task-definition \
             --task-definition ${{ env.TASK_FAMILY }} \
-            --query taskDefinition > task-definition.json
+            --query 'taskDefinition' > task-definition-full.json
 
-      - name: Update Container Image in Task Definition
-        run: |
-          jq --arg IMAGE "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}" \
-            '.containerDefinitions[0].image = $IMAGE' \
-            task-definition.json > updated-task-definition.json
+          # Extract only the needed fields and update the image
+          jq '{
+            family: .family,
+            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"}],
+            executionRoleArn: .executionRoleArn,
+            taskRoleArn: .taskRoleArn,
+            networkMode: .networkMode,
+            volumes: .volumes,
+            placementConstraints: .placementConstraints,
+            requiresCompatibilities: .requiresCompatibilities,
+            cpu: .cpu,
+            memory: .memory
+          }' task-definition-full.json > task-definition.json
 
       - name: Register New Task Definition
         id: register-task
         run: |
-          register_output=$(aws ecs register-task-definition --cli-input-json file://updated-task-definition.json)
+          register_output=$(aws ecs register-task-definition --cli-input-json file://task-definition.json)
           echo "task_arn=$(echo $register_output | jq -r '.taskDefinition.taskDefinitionArn')" >> $GITHUB_OUTPUT
 
       - name: Update ECS Service with New Task Definition
