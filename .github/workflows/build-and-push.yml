@@ -25,7 +25,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -47,17 +47,17 @@ jobs:
       - name: Remove existing tag if exists
         run: |
           # Try to remove both the environment tag and latest tag
-          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }} --query 'images[].imageManifest' --output text || true)
+          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }} --query 'images[].imageManifest' --output text || true)
           if [ ! -z "$MANIFEST" ]; then
-            aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }}
+            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }}
             echo "Removed ${{ env.ENV }} tag"
           else
             echo "No ${{ env.ENV }} tag found"
           fi
 
-          LATEST_MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
+          LATEST_MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest --query 'images[].imageManifest' --output text || true)
           if [ ! -z "$LATEST_MANIFEST" ]; then
-            aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=latest
+            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=latest
             echo "Removed latest tag"
           else
             echo "No latest tag found"
@@ -72,7 +72,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ENV }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV }}
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
@@ -85,7 +85,7 @@ jobs:
     environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
 
     steps:
-      - name: Set Environment Variables
+      - name: Set Environment varsiables
         run: |
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             ENV="prod"
@@ -101,7 +101,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -116,7 +116,7 @@ jobs:
           # Extract only the needed fields and update the image
           jq '{
             family: .family,
-            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ENV }}"}],
+            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV }}"}],
             executionRoleArn: .executionRoleArn,
             taskRoleArn: .taskRoleArn,
             networkMode: .networkMode,
@@ -136,7 +136,7 @@ jobs:
       - name: Update ECS Service with New Task Definition
         run: |
           aws ecs update-service \
-            --cluster ${{ env.ECR_REPOSITORY }}-cluster \
+            --cluster ${{ vars.ECR_REPOSITORY }}-cluster \
             --service ${{ env.SERVICE_NAME }} \
             --task-definition ${{ steps.register-task.outputs.task_arn }} \
             --force-new-deployment
@@ -144,5 +144,5 @@ jobs:
       - name: Wait for ECS Service to Stabilize
         run: |
           aws ecs wait services-stable \
-            --cluster ${{ env.ECR_REPOSITORY }}-cluster \
+            --cluster ${{ vars.ECR_REPOSITORY }}-cluster \
             --services ${{ env.SERVICE_NAME }}
