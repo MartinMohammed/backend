@@ -6,11 +6,6 @@ on:
   pull_request:
     branches: ["main", "dev"]
 
-env:
-  AWS_REGION: eu-central-1
-  ECR_REPOSITORY: ecr-fastapi-service
-  BASE_NAME: game-jam
-
 permissions:
   contents: read
   id-token: write
@@ -30,7 +25,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -46,15 +41,15 @@ jobs:
             ENV="dev"
           fi
           echo "ENV=$ENV" >> $GITHUB_ENV
-          echo "SERVICE_NAME=${BASE_NAME}-service-${ENV}" >> $GITHUB_ENV
-          echo "TASK_FAMILY=${BASE_NAME}-service-${ENV}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=${ECR_REPOSITORY}-service-${ENV}" >> $GITHUB_ENV
+          echo "TASK_FAMILY=${ECR_REPOSITORY}-service-${ENV}" >> $GITHUB_ENV
 
       - name: Remove existing tag if exists
         run: |
           # Try to remove both the environment tag and latest tag
-          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }} --query 'images[].imageManifest' --output text || true)
+          MANIFEST=$(aws ecr batch-get-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }} --query 'images[].imageManifest' --output text || true)
           if [ ! -z "$MANIFEST" ]; then
-            aws ecr batch-delete-image --repository-name ${{ env.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }}
+            aws ecr batch-delete-image --repository-name ${{ vars.ECR_REPOSITORY }} --image-ids imageTag=${{ env.ENV }}
             echo "Removed ${{ env.ENV }} tag"
           else
             echo "No ${{ env.ENV }} tag found"
@@ -68,7 +63,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ENV }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV }}
           build-args: |
             ENV=${{ env.ENV }}
           provenance: false
@@ -89,16 +84,16 @@ jobs:
             ENV="dev"
           fi
           echo "ENV=$ENV" >> $GITHUB_ENV
-          echo "SERVICE_NAME=${BASE_NAME}-service-${ENV}" >> $GITHUB_ENV
-          echo "TASK_FAMILY=${BASE_NAME}-service-${ENV}" >> $GITHUB_ENV
-          echo "CLUSTER_NAME=${BASE_NAME}-cluster-${ENV}" >> $GITHUB_ENV
+          echo "SERVICE_NAME=${ECR_REPOSITORY}-service-${ENV}" >> $GITHUB_ENV
+          echo "TASK_FAMILY=${ECR_REPOSITORY}-service-${ENV}" >> $GITHUB_ENV
+          echo "CLUSTER_NAME=${ECR_REPOSITORY}-cluster" >> $GITHUB_ENV
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -114,7 +109,7 @@ jobs:
           # Extract only the needed fields and update the image
           jq '{
             family: .family,
-            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.ENV }}"}],
+            containerDefinitions: [.containerDefinitions[0] | . + {image: "${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ env.ENV }}"}],
             executionRoleArn: .executionRoleArn,
             taskRoleArn: .taskRoleArn,
             networkMode: .networkMode,
