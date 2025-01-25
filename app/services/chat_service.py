@@ -44,18 +44,22 @@ class ChatService(LoggerMixin):
             backend_dir = app_dir.parent
             player_details_path = backend_dir / "data" / "player_details.json"
             
+            # use cls because it's a class method
             cls.get_logger().info(f"Attempting to load character details from {player_details_path}")
             
+            # check if the file exists
             if not player_details_path.exists():
                 cls.get_logger().error(f"File not found: {player_details_path}")
                 return {}
-                
+            
+            # read the contents of the file. 
             with open(player_details_path, "r") as f:
                 data = json.load(f)
+                # check if the key exists
                 if "player_details" not in data:
                     cls.get_logger().error("Missing 'player_details' key in JSON data")
                     return {}
-                    
+                # load the details about the players in the wagons
                 details = data["player_details"]
                 cls.get_logger().info(f"Successfully loaded character details. Available wagons: {list(details.keys())}")
                 return details
@@ -72,18 +76,19 @@ class ChatService(LoggerMixin):
             self.logger.debug(f"Getting character context for uid: {uid}")
             # "wagon-<i>-player-<k>"
             uid_splitted = uid.split('-')
-            wagon_id, player_id = uid_splitted[1], uid_splitted[3]
-            wagon_key = f"wagon-{wagon_id}"
-            player_key = f"player-{player_id}"
+            wagon_key, player_key = uid_splitted[0:2], uid_splitted[2:]
             
+            # check if the wagon key exists
             if wagon_key not in self.character_details:
                 self.logger.error(f"Wagon {wagon_key} not found in character details. Available wagons: {list(self.character_details.keys())}")
                 return None
-                
+            
+            # check if the player key exists
             if player_key not in self.character_details[wagon_key]:
                 self.logger.error(f"Player {player_key} not found in wagon {wagon_key}. Available players: {list(self.character_details[wagon_key].keys())}")
                 return None
-                
+            
+            # get the details of the player that belongs to the wagon 
             character = self.character_details[wagon_key][player_key]
             self.logger.debug("Retrieved character context", extra={
                 "uid": uid,

@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes import health, wagons, chat
 from app.core.logging import setup_logging, get_logger
 from dotenv import load_dotenv
-import os
 from datetime import datetime
 import time
 
