@@ -136,7 +136,6 @@ async def get_wagon_players(
             }
             filtered_info = filter_player_info(complete_info, properties)
             players_info.append(filtered_info)
-            players_info.append(complete_info)
 
         logger.info(f"Successfully retrieved all players for wagon {wagon_id}")
         return {"players": players_info}
