@@ -52,6 +52,7 @@ app.add_middleware(
     max_age=3600,  # Cache preflight requests for 1 hour
 )
 
+
 # -----------------------------------------------------------------------------
 # 2. Middleware to handle redirects and force HTTPS in redirect Location headers
 # -----------------------------------------------------------------------------
