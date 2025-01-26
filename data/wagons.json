@@ -2,61 +2,98 @@
   "wagons": [
     {
       "id": 0,
-      "passcode": "creativity",
+      "theme": "A Golden Business",
+      "passcode": "Gold Ingot",
       "people": [
         {
           "uid": "wagon-0-player-1",
-          "position": [0.5, 0.5],
+          "position": [
+            0.5,
+            0.5
+          ],
           "rotation": 0,
-          "character": "main",
           "model_type": "character-male-e",
           "items": []
         },
         {
           "uid": "wagon-0-player-2",
-          "position": [0.25, 0.25],
+          "position": [
+            0.25,
+            0.25
+          ],
           "rotation": 0,
-          "character": "mob",
           "model_type": "character-female-f",
-          "items": ["cone"]
+          "items": []
         },
         {
           "uid": "wagon-0-player-3",
-          "position": [0.75, 0.55],
+          "position": [
+            0.75,
+            0.55
+          ],
           "rotation": 0,
-          "character": "citizen",
           "model_type": "character-male-c",
-          "items": ["blaster", "cone"]
+          "items": []
+        },
+        {
+          "uid": "wagon-0-player-4",
+          "position": [
+            0.75,
+            0.65
+          ],
+          "rotation": 0,
+          "model_type": "character-female-e",
+          "items": []
         }
       ]
     },
     {
       "id": 1,
-      "passcode": "inspiration",
+      "theme": "Off the Map",
+      "passcode": "Lost Civilization",
       "people": [
         {
           "uid": "wagon-1-player-1",
-          "position": [0.5, 0.5],
+          "position": [
+            0.5,
+            0.5
+          ],
           "rotation": 0,
-          "character": "main",
           "model_type": "character-male-e",
           "items": []
         },
         {
           "uid": "wagon-1-player-2",
-          "position": [0.25, 0.25],
+          "position": [
+            0.25,
+            0.25
+          ],
           "rotation": 0,
-          "character": "mob",
-          "model_type": "character-male-a",
-          "items": ["blaster", "cone"]
+          "model_type": "character-female-e",
+          "items": [
+            "blaster",
+            "cone"
+          ]
         },
         {
           "uid": "wagon-1-player-3",
-          "position": [0.75, 0.55],
+          "position": [
+            0.75,
+            0.55
+          ],
           "rotation": 0,
-          "character": "citizen",
-          "model_type": "character-female-e",
-          "items": ["blaster"]
+          "model_type": "character-male-e",
+          "items": []
+        },
+        {
+          "uid": "wagon-1-player-4",
+          "position": [
+            0.75,
+            0.65
+          ],
+          "rotation": 0,
+          "model_type": "character-female-f",
+          "items": []
         }
       ]
     }

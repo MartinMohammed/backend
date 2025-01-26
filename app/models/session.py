@@ -24,6 +24,8 @@ class GuessingProgress(BaseModel):
 class WagonProgress(BaseModel):
     wagon_id: int = 0
     conversations: Dict[str, Conversation] = Field(default_factory=dict)
+    theme: str = "A Golden Business"
+    password: str = "Gold ingot"
 
 
 class UserSession(BaseModel):

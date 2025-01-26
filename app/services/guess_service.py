@@ -11,7 +11,7 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
 class GuessResponse(BaseModel):
     guess: str = Field(description="A one-word guess for the password related theme")
-thoughts: str = Field(
+    thoughts: str = Field(
         description="Thoughts spoken out loud leading to the password guess"
     )
 
@@ -22,7 +22,7 @@ class GuessingService:
 
         llm = (
             ChatMistralAI(
-                model_name="ministral-8b-latest",
+                model_name="mistral-large-latest",
                 temperature=1,
             )
             .with_structured_output(schema=GuessResponse)
@@ -31,14 +31,20 @@ class GuessingService:
 
         self.chain = prompt | llm
 
+    def filter_password(self: "GuessingService", indication: str, password: str) -> str:
+        return indication.replace(password, "*******")
+
     def generate(
         self: "GuessingService",
         previous_guesses: list[str],
         theme: str,
         previous_indications: list[Message],
         current_indication: str,
+        password: str,
     ) -> GuessResponse:
         previous_indications = [message.content for message in previous_indications]
+
+        current_indication = self.filter_password(current_indication, password)
 
         return self.chain.invoke(
             {

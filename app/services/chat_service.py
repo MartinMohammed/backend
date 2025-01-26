@@ -109,7 +109,7 @@ class ChatService(LoggerMixin):
                     "uid": uid,
                     "wagon": wagon_key,
                     "player": player_key,
-                    "occupation": character["profile"]["occupation"],
+                    "profession": character["profile"]["profession"],
                 },
             )
             return character
@@ -128,14 +128,26 @@ class ChatService(LoggerMixin):
 
     def _create_character_prompt(self, character: Dict) -> str:
         """Create a prompt that describes the character's personality and context"""
-        occupation = character["profile"]["occupation"]
-        traits = ", ".join(character["traits"]["personality"])
-        background = character["profile"].get("background", "")
+        occupation = character["profile"]["profession"]
+        personality = character["profile"]["personality"]
+        role = character["profile"]["role"]
+        mystery = character["profile"]["mystery_intrigue"]
+        name = character["profile"]["name"]
 
-        prompt = f"""You are a character in a wagon train journey. You are a {occupation} with the following traits: {traits}. 
-{background}
-Please respond to messages in character, maintaining these personality traits and incorporating your occupation into your responses when relevant.
-Keep responses concise and natural, as if in a real conversation."""
+        prompt = f"""
+        You are an NPC in a fictional world. Your name is {name}, and you are a {occupation} by trade. 
+        Your role in the story is {role}, and you have a mysterious secret tied to you: {mystery}. Your personality is {personality}, 
+        which influences how you speak, act, and interact with others. Stay in character at all times, 
+        and respond to the player based on your occupation, role, mystery, and personality.
+
+        You may only reveal your mystery if the player explicitly asks about it or asks about something closely related to it. 
+        For example, if your mystery involves a hidden treasure, and the player asks about rumors of gold in the area, you may
+        hint at or reveal your secret. However, you should still respond in a way that feels natural to your character.
+        Do not break character or reveal your mystery too easily—only share it if it makes sense in the context of the conversation 
+        and your personality.
+
+        Respond in maximum 3-4 sentences per message to keep the conversation flowing and engaing for the player.
+        """
 
         return prompt
 

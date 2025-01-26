@@ -2,42 +2,54 @@
   "names": {
     "wagon-0": {
       "player-1": {
-        "firstName": "Alex",
-        "lastName": "Taylor",
+        "firstName": "Victor",
+        "lastName": "Sterling",
         "sex": "male",
-        "fullName": "Alex Taylor"
+        "fullName": "Victor Sterling"
       },
       "player-2": {
-        "firstName": "Emma",
-        "lastName": "Doe",
+        "firstName": "Isabella",
+        "lastName": "Hart",
         "sex": "female",
-        "fullName": "Emma Doe"
+        "fullName": "Isabella Hart"
       },
       "player-3": {
-        "firstName": "Liam",
-        "lastName": "Smith",
+        "firstName": "Lucas",
+        "lastName": "Ford",
         "sex": "male",
-        "fullName": "Liam Smith"
+        "fullName": "Lucas Ford"
+      },
+      "player-4": {
+        "firstName": "Eleanor",
+        "lastName": "Brooks",
+        "sex": "female",
+        "fullName": "Eleanor Brooks"
       }
     },
     "wagon-1": {
       "player-1": {
-        "firstName": "Alex",
-        "lastName": "Taylor",
+        "firstName": "Adrian",
+        "lastName": "North",
         "sex": "male",
-        "fullName": "Alex Taylor"
+        "fullName": "Eleanor Brooks"
       },
       "player-2": {
-        "firstName": "Ethan",
-        "lastName": "Williams",
-        "sex": "male",
-        "fullName": "Ethan Williams"
+        "firstName": "Elena",
+        "lastName": "Stone",
+        "sex": "female",
+        "fullName": "Elena Stone"
       },
       "player-3": {
+        "firstName": "Lucas",
+        "lastName": "West",
+        "sex": "male",
+        "fullName": "Lucas West"
+      },
+      "player-4": {
         "firstName": "Sophia",
-        "lastName": "Johnson",
+        "lastName": "East",
         "sex": "female",
-        "fullName": "Sophia Johnson"
+        "fullName": "Sophia East"
       }
     }
   }

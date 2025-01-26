@@ -13,10 +13,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    prefix="/api/chat",
-    tags=["chat"]
-)
+router = APIRouter(prefix="/api/chat", tags=["chat"])
+
 
 class ChatResponse(BaseModel):
     uid: str
@@ -29,19 +27,21 @@ class ChatHistoryResponse(BaseModel):
     uid: str
     messages: list[dict]
 
-    # Replace service initialization with dependency injection
+
 class GuessResponse(BaseModel):
     guess: str
     thoughts: str
     timestamp: str
-
+    score: float
 
 
 def get_chat_service():
     return ChatService()
 
+
 def get_guess_service():
     return GuessingService()
+
 
 def get_tts_service():
     return TTSService()
@@ -91,6 +91,7 @@ async def advance_to_next_wagon(session: UserSession = Depends(get_session)) -> 
         "current_wagon": session.current_wagon.wagon_id,
     }
 
+
 # Add depedency injection and response models
 @router.post("/session/{session_id}/guess", response_model=GuessResponse)
 async def guess_password(
@@ -101,14 +102,15 @@ async def guess_password(
 ) -> dict:
     guessing_progress = SessionService.get_guessing_progress(session.session_id)
 
-    theme = "A business of Gold"
-    password = "Gold"
+    theme = session.current_wagon.theme
+    password = session.current_wagon.password
 
     guess_response = guess_service.generate(
         previous_guesses=guessing_progress.guesses,
         theme=theme,
         previous_indications=guessing_progress.indications,
         current_indication=chat_message.message,
+        password=password,
     )
 
     score = score_service.is_similar(
@@ -166,7 +168,7 @@ async def chat_with_character(
     # Generate audio from the response
     try:
         audio_bytes = tts_service.convert_text_to_speech(ai_response)
-        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+        audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
     except Exception as e:
         logger.error(f"Failed to generate audio: {str(e)}")
         # Continue with text response even if audio fails
@@ -182,6 +184,7 @@ async def chat_with_character(
         "audio": audio_base64,
         "timestamp": datetime.utcnow().isoformat(),
     }
+
 
 @router.get("/session/{session_id}/{uid}/history", response_model=ChatHistoryResponse)
 async def get_chat_history(

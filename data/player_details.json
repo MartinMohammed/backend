@@ -3,151 +3,84 @@
     "wagon-0": {
       "player-1": {
         "profile": {
-          "age": 38,
-          "occupation": "Undercover Police Cop",
-          "roleDescription": "The protagonist who explores the minds of other passengers to unlock the secrets of each wagon.",
-          "background": "Alex Taylor is an undercover police cop with a relentless drive to solve intricate crime cases. Having witnessed the devastating impact of organized crime firsthand, Alex is determined to dismantle mob networks and bring justice to those affected. His resourcefulness and keen observational skills make him adept at blending into various environments, allowing him to gather crucial information without raising suspicion. Despite the constant threat of exposure and the psychological toll of his work, Alex remains steadfast in his mission to protect innocent lives and uphold the law."
-        },
-        "traits": {
-          "personality": ["Resourceful", "Courageous", "Observant"],
-          "motivations": [
-            "Solving complex crime cases",
-            "Protecting innocent lives",
-            "Uncovering hidden truths"
-          ]
-        },
-        "inventory": {
-          "items": [],
-          "stories": {}
-        },
-        "dialogue": {
-          "prompts": []
+          "name": "Victor Sterling",
+          "age": 55,
+          "profession": "Mining Magnate",
+          "personality": "Ambitious, cunning, and charismatic",
+          "role": "Owns a vast mining empire, recently discovered a new vein of precious metal with a peculiar luster.",
+          "mystery_intrigue": "Secretly trades in unregistered precious metals, hiding a fortune in a secure vault."
         }
       },
       "player-2": {
         "profile": {
-          "age": 34,
-          "occupation": "Traffic Manager",
-          "background": "She has always been fascinated by systems and how small changes can lead to significant improvements. Her meticulous nature makes her an invaluable asset in high-pressure environments."
-        },
-        "traits": {
-          "personality": ["Organized", "Calm", "Detail-oriented"],
-          "motivations": ["Maintaining order", "Achieving efficiency"]
-        },
-        "inventory": {
-          "items": ["cone"],
-          "stories": {
-            "cone": "She, a dedicated traffic manager, uses cones daily to organize chaos, reflecting her passion for bringing order and structure to her work and personal life."
-          }
-        },
-        "dialogue": {
-          "prompts": [
-            "Tell me about how you organize traffic flow.",
-            "What inspired you to become a traffic manager?",
-            "How do cones help you in your daily tasks?"
-          ]
+          "name": "Isabella Hart",
+          "age": 38,
+          "profession": "Jewelry Designer",
+          "personality": "Creative, passionate, and meticulous",
+          "role": "Designs exquisite jewelry for the elite, recently commissioned to create pieces from a rare, gleaming metal.",
+          "mystery_intrigue": "Receives anonymous shipments of raw, lustrous metal, unaware of its true origin."
         }
       },
       "player-3": {
         "profile": {
-          "age": 29,
-          "occupation": "Graphic Designer",
-          "background": "He transitioned from game development to graphic design to explore different avenues of creativity. His diverse skill set allows him to approach problems from unique perspectives."
-        },
-        "traits": {
-          "personality": ["Creative", "Innovative", "Thoughtful"],
-          "motivations": ["Expressing creativity", "Solving design challenges"]
-        },
-        "inventory": {
-          "items": ["blaster", "cone"],
-          "stories": {
-            "blaster": "He, a former game developer, keeps his blaster as a memento from creating action-packed video games that sparked his creativity.",
-            "cone": "He also enjoys using cones in his artwork, symbolizing his ability to merge creativity with practicality."
-          }
-        },
-        "dialogue": {
-          "prompts": [
-            "How does your blaster inspire your creative process?",
-            "Can you describe a project where you used cones in your design?",
-            "What challenges do you face as a graphic designer?"
-          ]
+          "name": "Lucas Ford",
+          "age": 42,
+          "profession": "Financial Advisor",
+          "personality": "Analytical, cautious, and strategic",
+          "role": "Manages the investments of wealthy clients, notices unusual transactions involving large amounts of gleaming bullion.",
+          "mystery_intrigue": "Suspects a client of illegal trading in unregistered precious metals, but lacks concrete evidence."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Eleanor Brooks",
+          "age": 32,
+          "profession": "Investigative Journalist",
+          "personality": "Tenacious, curious, and ethical",
+          "role": "Investigates corruption in the mining industry, follows a lead on a hidden stash of radiant metal bars.",
+          "mystery_intrigue": "Uncovers a network of illegal precious metal trades, putting her life in danger."
         }
       }
     },
     "wagon-1": {
       "player-1": {
         "profile": {
+          "name": "Adrian North",
           "age": 38,
-          "occupation": "Undercover Police Cop",
-          "roleDescription": "The protagonist who explores the minds of other passengers to unlock the secrets of each wagon.",
-          "background": "Alex Taylor is an undercover police cop with a relentless drive to solve intricate crime cases. Having witnessed the devastating impact of organized crime firsthand, Alex is determined to dismantle mob networks and bring justice to those affected. His resourcefulness and keen observational skills make him adept at blending into various environments, allowing him to gather crucial information without raising suspicion. Despite the constant threat of exposure and the psychological toll of his work, Alex remains steadfast in his mission to protect innocent lives and uphold the law."
-        },
-        "traits": {
-          "personality": ["Resourceful", "Courageous", "Observant"],
-          "motivations": [
-            "Solving complex crime cases",
-            "Protecting innocent lives",
-            "Uncovering hidden truths"
-          ]
-        },
-        "inventory": {
-          "items": [],
-          "stories": {}
-        },
-        "dialogue": {
-          "prompts": []
+          "profession": "Adventurer and Cartographer",
+          "personality": "Brave, curious, and determined",
+          "role": "Leads the expedition through uncharted territories, using an antique navigation tool with a unique magnetic needle.",
+          "mystery_intrigue": "Carries a mysterious map that seems to guide them towards a hidden treasure, but the map has strange symbols that no one can decipher."
         }
       },
       "player-2": {
         "profile": {
-          "age": 42,
-          "occupation": "Educator",
-          "background": "He has a background in both education and technology, allowing him to integrate modern tools into his teaching to enhance student engagement."
-        },
-        "traits": {
-          "personality": ["Enthusiastic", "Dynamic", "Inspiring"],
-          "motivations": [
-            "Educating the next generation",
-            "Implementing innovative teaching methods"
-          ]
-        },
-        "inventory": {
-          "items": ["blaster"],
-          "stories": {
-            "blaster": "He, a passionate educator, uses his blaster as a symbol of his enthusiasm and dynamic teaching methods that inspire his students."
-          }
-        },
-        "dialogue": {
-          "prompts": [
-            "How does the blaster symbolize your teaching philosophy?",
-            "What innovative methods do you use in your classroom?",
-            "Can you share a memorable teaching experience?"
-          ]
+          "name": "Elena Stone",
+          "age": 32,
+          "profession": "Archaeologist",
+          "personality": "Intelligent, meticulous, and resourceful",
+          "role": "Studies ancient artifacts found along the journey, including a small, intricately designed metal disk.",
+          "mystery_intrigue": "Has discovered clues suggesting the existence of a lost civilization, but keeps this information secret from the team."
         }
       },
       "player-3": {
         "profile": {
-          "age": 26,
-          "occupation": "Musician",
-          "background": "She has been blending classical instruments with electronic music to create a unique sound that resonates with a diverse audience."
-        },
-        "traits": {
-          "personality": ["Passionate", "Energetic", "Innovative"],
-          "motivations": ["Creating impactful music", "Blending genres"]
-        },
-        "inventory": {
-          "items": ["blaster", "cone"],
-          "stories": {
-            "blaster": "She, an aspiring musician, sees her blaster as a metaphor for her powerful performances that captivate audiences.",
-            "cone": "The cone represents her innovative approach to music production, always finding new ways to blend different genres."
-          }
-        },
-        "dialogue": {
-          "prompts": [
-            "What drives your passion for music?",
-            "How do you incorporate the blaster into your performances?",
-            "In what ways do cones influence your music production?"
-          ]
+          "name": "Lucas West",
+          "age": 28,
+          "profession": "Botanist",
+          "personality": "Analytical, patient, and nurturing",
+          "role": "Identifies and documents new plant species, often seen with a small, engraved metal case containing rare seeds.",
+          "mystery_intrigue": "Finds a rare plant that has healing properties, but its location is marked by a peculiar symbol that resembles a directional pointer."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Sophia East",
+          "age": 35,
+          "profession": "Linguist",
+          "personality": "Insightful, empathetic, and communicative",
+          "role": "Deciphers ancient languages and symbols encountered during the expedition, carries a small, ornate metal pendant.",
+          "mystery_intrigue": "Uncovers a hidden language that seems to provide directions to a mysterious artifact, but the language is unlike anything she has ever seen."
         }
       }
     }

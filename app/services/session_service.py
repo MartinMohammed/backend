@@ -130,7 +130,7 @@ class SessionService(LoggerMixin):
 
         # get the wagon id from the uid
         # uuid is in the format of wagon-<i>-player-<k>
-        
+
         wagon_id = int(uid.split("-")[1])
         # check if the wagon id is the same as the current wagon id
         # if the wagon id is not the same, client is trying to access a different wagon
@@ -212,7 +212,6 @@ class SessionService(LoggerMixin):
             f"wagon-{wagon_id}-player-0"
         ).messages
 
-
         messages.append(Message(role="user", content=indication))
         messages.append(Message(role="assistant", content=thought[0]))
 
@@ -260,10 +259,14 @@ class SessionService(LoggerMixin):
             return False
 
         # Set up next wagon
-        session.current_wagon = WagonProgress(wagon_id=next_wagon_id)
+        session.current_wagon = WagonProgress(
+            wagon_id=next_wagon_id,
+            theme=wagons_data["wagons"][next_wagon_id]["theme"],
+            password=wagons_data["wagons"][next_wagon_id]["passcode"],
+        )
 
         # Clean up the previous guesses
-        session.current_guesses = GuessingProgress()
+        session.guessing_progress = GuessingProgress()
         cls.update_session(session)
 
         cls.get_logger().info(

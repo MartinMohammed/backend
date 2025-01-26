@@ -1,18 +1,13 @@
-from fastapi import APIRouter, status, Response
+from fastapi import APIRouter, status
 
 router = APIRouter(
     prefix="/health",
-    tags=["health"]
+    tags=["chat"]
 )
 
-@router.get("")
-@router.options("")  # Handle OPTIONS preflight request
+@router.get("", status_code=status.HTTP_200_OK)
 async def health_check():
-    """Health check endpoint for AWS ELB"""
-    response = Response(status_code=status.HTTP_200_OK)
-    # Add CORS headers explicitly for health checks
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    response.headers["Access-Control-Max-Age"] = "3600"
-    return response 
+    return {
+        "status": "healthy",
+        "message": "Service is running"
+    } 
