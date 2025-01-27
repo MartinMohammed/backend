@@ -1,6 +1,6 @@
 {
   "player_details": {
-    "wagon-0": {
+    "wagon-1": {
       "player-1": {
         "profile": {
           "name": "Victor Sterling",
@@ -42,7 +42,7 @@
         }
       }
     },
-    "wagon-1": {
+    "wagon-2": {
       "player-1": {
         "profile": {
           "name": "Adrian North",
