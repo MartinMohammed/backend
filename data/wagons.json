@@ -103,5 +103,100 @@
         }
       ]
     }
+  ,
+  {
+    "id": 3,
+    "theme": "Ving Mille Lieues Sous Les Mers",
+    "passcode": "Aquatic legends",
+    "people": [
+      {
+        "uid": "wagon-3-player-1",
+        "position": [
+          0.5,
+          0.5
+        ],
+        "rotation": 0,
+        "model_type": "character-female-d",
+        "items": []
+      },
+      {
+        "uid": "wagon-3-player-2",
+        "position": [
+          0.25,
+          0.25
+        ],
+        "rotation": 0,
+        "model_type": "character-male-d",
+        "items": []
+      },
+      {
+        "uid": "wagon-3-player-3",
+        "position": [
+          0.75,
+          0.55
+        ],
+        "rotation": 0,
+        "model_type": "character-female-b",
+        "items": []
+      },
+      {
+        "uid": "wagon-3-player-4",
+        "position": [
+          0.75,
+          0.65
+        ],
+        "rotation": 0,
+        "model_type": "character-male-c",
+        "items": []
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "theme": "Journey to the Future",
+    "passcode": "future",
+    "people": [
+      {
+        "uid": "wagon-4-player-1",
+        "position": [
+          0.5,
+          0.5
+        ],
+        "rotation": 0,
+        "model_type": "character-male-a",
+        "items": []
+      },
+      {
+        "uid": "wagon-4-player-2",
+        "position": [
+          0.25,
+          0.25
+        ],
+        "rotation": 0,
+        "model_type": "character-female-a",
+        "items": []
+      },
+      {
+        "uid": "wagon-4-player-3",
+        "position": [
+          0.75,
+          0.55
+        ],
+        "rotation": 0,
+        "model_type": "character-male-f",
+        "items": []
+      },
+      {
+        "uid": "wagon-4-player-4",
+        "position": [
+          0.75,
+          0.65
+        ],
+        "rotation": 0,
+        "model_type": "character-female-b",
+        "items": []
+      }
+    ]
+  }
   ]
 }
