@@ -13,6 +13,7 @@ load_dotenv()
 # Setup logging
 logger = get_logger("main")
 
+
 app = FastAPI(
     title="Game Jam API",
     description="API for Game Jam Hackathon",
@@ -167,3 +168,4 @@ async def root():
         "chat_endpoint": "/api/chat",
         "players_endpoint": "/api/players"
     }
+
