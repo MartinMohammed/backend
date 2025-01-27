@@ -197,6 +197,146 @@
         "items": []
       }
     ]
+  },
+  {
+    "id": 5,
+    "theme": "The Grand Symphony",
+    "passcode": "melody",
+    "people": [
+      {
+        "uid": "wagon-5-player-1",
+        "position": [0.5, 0.5],
+        "rotation": 0,
+        "model_type": "character-male-b",
+        "items": []
+      },
+      {
+        "uid": "wagon-5-player-2",
+        "position": [0.3, 0.4],
+        "rotation": 0,
+        "model_type": "character-female-d",
+        "items": []
+      },
+      {
+        "uid": "wagon-5-player-3",
+        "position": [0.7, 0.6],
+        "rotation": 0,
+        "model_type": "character-male-d",
+        "items": []
+      },
+      {
+        "uid": "wagon-5-player-4",
+        "position": [0.6, 0.8],
+        "rotation": 0,
+        "model_type": "character-female-c",
+        "items": []
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "theme": "Jungle Jazz",
+    "passcode": "jungle",
+    "people": [
+      {
+        "uid": "wagon-6-player-1",
+        "position": [0.5, 0.5],
+        "rotation": 0,
+        "model_type": "character-male-f",
+        "items": []
+      },
+      {
+        "uid": "wagon-6-player-2",
+        "position": [0.25, 0.4],
+        "rotation": 0,
+        "model_type": "character-female-a",
+        "items": []
+      },
+      {
+        "uid": "wagon-6-player-3",
+        "position": [0.7, 0.55],
+        "rotation": 0,
+        "model_type": "character-male-e",
+        "items": []
+      },
+      {
+        "uid": "wagon-6-player-4",
+        "position": [0.77, 0.65],
+        "rotation": 0,
+        "model_type": "character-female-f",
+        "items": []
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "theme": "Feuding Families",
+    "passcode": "rose",
+    "people": [
+      {
+        "uid": "wagon-7-player-1",
+        "position": [0.45, 0.5],
+        "rotation": 0,
+        "model_type": "character-male-d",
+        "items": []
+      },
+      {
+        "uid": "wagon-7-player-2",
+        "position": [0.3, 0.25],
+        "rotation": 0,
+        "model_type": "character-female-f",
+        "items": []
+      },
+      {
+        "uid": "wagon-7-player-3",
+        "position": [0.75, 0.5],
+        "rotation": 0,
+        "model_type": "character-male-c",
+        "items": []
+      },
+      {
+        "uid": "wagon-7-player-4",
+        "position": [0.75, 0.65],
+        "rotation": 0,
+        "model_type": "character-male-b",
+        "items": []
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "theme": "Secrets on Record",
+    "passcode": "resonance",
+    "people": [
+      {
+        "uid": "wagon-8-player-1",
+        "position": [0.5, 0.5],
+        "rotation": 0,
+        "model_type": "character-female-e",
+        "items": []
+      },
+      {
+        "uid": "wagon-8-player-2",
+        "position": [0.25, 0.25],
+        "rotation": 0,
+        "model_type": "character-male-c",
+        "items": []
+      },
+      {
+        "uid": "wagon-8-player-3",
+        "position": [0.75, 0.55],
+        "rotation": 0,
+        "model_type": "character-female-b",
+        "items": []
+      },
+      {
+        "uid": "wagon-8-player-4",
+        "position": [0.75, 0.65],
+        "rotation": 0,
+        "model_type": "character-male-a",
+        "items": []
+      }
+    ]
   }
   ]
 }
