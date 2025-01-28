@@ -10,6 +10,7 @@ import time
 # Load environment variables
 load_dotenv()
 
+
 # Setup logging
 logger = get_logger("main")
 
