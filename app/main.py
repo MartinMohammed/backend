@@ -10,6 +10,7 @@ import time
 # Load environment variables
 load_dotenv()
 
+
 # Setup logging
 logger = get_logger("main")
 
@@ -19,6 +20,7 @@ app = FastAPI(
     description="API for Game Jam Hackathon",
     version="1.0.0"
 )
+
 
 # -----------------------------------------------------------------------------
 # 1. Configure CORS for Unity Web Requests
