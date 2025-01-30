@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
-from app.routes import health, wagons, chat, players
+from app.routes import health, wagons, chat, players, generate
 from app.core.logging import get_logger
 from dotenv import load_dotenv
 from datetime import datetime
@@ -155,6 +154,7 @@ app.include_router(health.router)
 app.include_router(wagons.router)
 app.include_router(chat.router)
 app.include_router(players.router)
+app.include_router(generate.router)
 
 # -----------------------------------------------------------------------------
 # 6. Basic root endpoint
