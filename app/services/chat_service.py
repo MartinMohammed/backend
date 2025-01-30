@@ -5,8 +5,6 @@ import json
 from typing import Optional, Dict
 import os
 from mistralai import Mistral
-from app.utils.file_management import FileManager
-from app.models.session import UserSession
 
 
 # Get the Mistral API key from environment (injected by ECS)
@@ -14,18 +12,17 @@ mistral_api_key = os.getenv("MISTRAL_API_KEY")
 
 
 class ChatService(LoggerMixin):
-    def __init__(self, session: UserSession):
+    def __init__(self):
         self.logger.info("Initializing ChatService")
-        # Load all available character in every wagon. 
-        self.player_details: Dict = self._load_player_details(session)
+        self.character_details: Dict = self._load_character_details()
 
-        if not self.player_details:
+        if not self.character_details:
             self.logger.error(
                 "Failed to initialize character details - dictionary is empty"
             )
         else:
             self.logger.info(
-                f"Loaded character details for wagons: {list(self.player_details.keys())}"
+                f"Loaded character details for wagons: {list(self.character_details.keys())}"
             )
 
         # Get the Mistral API key from environment (injected by ECS)
@@ -40,26 +37,40 @@ class ChatService(LoggerMixin):
         self.logger.info("Initialized Mistral AI client")
 
     @classmethod
-    def _load_player_details(cls, session) -> Dict:
+    def _load_character_details(cls) -> Dict:
         """Load character details from JSON files"""
         try:
-            # Use FileManager to load the default session data
-            _, player_details, _ = FileManager.load_session_data(session.session_id, session.default_game)
-            
-            if "player_details" not in player_details:
-                print("Missing 'player_details' key in JSON data")
-                cls.get_logger().error("Missing 'player_details' key in JSON data")
-                return {}
-            
-            details = player_details["player_details"]
-            print(f"Loaded character details: {details}")
+            # Get the absolute path to the data directory
+            current_dir = Path(__file__).resolve().parent
+            app_dir = current_dir.parent
+            backend_dir = app_dir.parent
+            player_details_path = backend_dir / "data" / "player_details.json"
+
+            # use cls because it's a class method
             cls.get_logger().info(
-                f"Successfully loaded character details. Available wagons: {list(details.keys())}"
+                f"Attempting to load character details from {player_details_path}"
             )
-            return details
-        
-        except FileNotFoundError as e:
-            cls.get_logger().error(f"Failed to load default player details: {str(e)}")
+
+            # check if the file exists
+            if not player_details_path.exists():
+                cls.get_logger().error(f"File not found: {player_details_path}")
+                return {}
+
+            # read the contents of the file.
+            with open(player_details_path, "r") as f:
+                data = json.load(f)
+                # check if the key exists
+                if "player_details" not in data:
+                    cls.get_logger().error("Missing 'player_details' key in JSON data")
+                    return {}
+                # load the details about the players in the wagons
+                details = data["player_details"]
+                cls.get_logger().info(
+                    f"Successfully loaded character details. Available wagons: {list(details.keys())}"
+                )
+                return details
+        except json.JSONDecodeError as e:
+            cls.get_logger().error(f"JSON parsing error: {str(e)}")
             return {}
         except Exception as e:
             cls.get_logger().error(f"Failed to load character details: {str(e)}")
@@ -77,29 +88,41 @@ class ChatService(LoggerMixin):
             )
 
             # check if the wagon key exists
-            print(self.player_details, "player_details")
-            if wagon_key not in self.player_details:
+            if wagon_key not in self.character_details:
                 self.logger.error(
-                    f"Wagon {wagon_key} not found in character details. Available wagons: {list(self.player_details.keys())}"
+                    f"Wagon {wagon_key} not found in character details. Available wagons: {list(self.character_details.keys())}"
                 )
                 return None
 
             # check if the player key exists
-            if player_key not in self.player_details[wagon_key]:
+            if player_key not in self.character_details[wagon_key]:
                 self.logger.error(
-                    f"Player {player_key} not found in wagon {wagon_key}. Available players: {list(self.player_details[wagon_key].keys())}"
+                    f"Player {player_key} not found in wagon {wagon_key}. Available players: {list(self.character_details[wagon_key].keys())}"
                 )
                 return None
 
             # get the details of the player that belongs to the wagon
-            character = self.player_details[wagon_key][player_key]
+            character = self.character_details[wagon_key][player_key]
             self.logger.debug(
-                f"Retrieved character context | uid: {uid} | wagon: {wagon_key} | player: {player_key} | profession: {character['profile']['profession']}"
+                "Retrieved character context",
+                extra={
+                    "uid": uid,
+                    "wagon": wagon_key,
+                    "player": player_key,
+                    "profession": character["profile"]["profession"],
+                },
             )
             return character
         except (KeyError, IndexError) as e:
             self.logger.error(
-                f"Failed to get character context: {str(e)} | uid: {uid} | error: {str(e)} | player_details_keys: {list(self.player_details.keys()) if self.player_details else None}"
+                f"Failed to get character context: {str(e)}",
+                extra={
+                    "uid": uid,
+                    "error": str(e),
+                    "character_details_keys": list(self.character_details.keys())
+                    if self.character_details
+                    else None,
+                },
             )
             return None
 
@@ -153,33 +176,26 @@ class ChatService(LoggerMixin):
                 messages.append({"role": role, "content": msg.content})
 
             # Get response from Mistral AI
-            try:
-                chat_response = self.client.chat.complete(
-                    model=self.model, messages=messages, temperature=0.7, max_tokens=500
-                )
+            chat_response = self.client.chat.complete(
+                model=self.model, messages=messages, temperature=0.7, max_tokens=500
+            )
 
-                if not chat_response or not chat_response.choices:
-                    raise ValueError("Empty response received from Mistral AI")
+            response = chat_response.choices[0].message.content
 
-                response = chat_response.choices[0].message.content
+            self.logger.info(
+                "Generated Mistral AI response",
+                extra={
+                    "uid": uid,
+                    "response_length": len(response),
+                    "conversation_length": len(conversation.messages),
+                },
+            )
 
-                if not response or not isinstance(response, str):
-                    raise ValueError(f"Invalid response format: {type(response)}")
-
-                self.logger.info(
-                    f"Generated Mistral AI response | uid: {uid} | response_length: {len(response)} | conversation_length: {len(conversation.messages)}"
-                )
-
-                return response
-
-            except Exception as api_error:
-                self.logger.error(
-                    f"Mistral API error | uid: {uid} | error: {str(api_error)} | messages_count: {len(messages)}"
-                )
-                raise ValueError(f"Mistral API error: {str(api_error)}")
+            return response
 
         except Exception as e:
             self.logger.error(
-                f"Failed to generate Mistral AI response | uid: {uid} | error: {str(e)} | error_type: {type(e).__name__} | character_name: {character.get('profile', {}).get('name', 'unknown')}"
+                f"Failed to generate Mistral AI response: {str(e)}",
+                extra={"uid": uid, "error": str(e)},
             )
-            return f"I apologize, but I'm having trouble responding right now. Error: {str(e)}"
+            return "I apologize, but I'm having trouble responding right now. Please try again later."

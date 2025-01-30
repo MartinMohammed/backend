@@ -1,0 +1,349 @@
+{
+  "player_details": {
+    "wagon-0": {},
+
+    "wagon-1": {
+      "player-1": {
+        "profile": {
+          "name": "Victor Sterling",
+          "age": 55,
+          "profession": "Mining Magnate",
+          "personality": "Ambitious, cunning, and charismatic",
+          "role": "Owns a vast mining empire, recently discovered a new vein of precious metal with a peculiar luster.",
+          "mystery_intrigue": "Secretly trades in unregistered precious metals, hiding a fortune in a secure vault."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Isabella Hart",
+          "age": 38,
+          "profession": "Jewelry Designer",
+          "personality": "Creative, passionate, and meticulous",
+          "role": "Designs exquisite jewelry for the elite, recently commissioned to create pieces from a rare, gleaming metal.",
+          "mystery_intrigue": "Receives anonymous shipments of raw, lustrous metal, unaware of its true origin."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Lucas Ford",
+          "age": 42,
+          "profession": "Financial Advisor",
+          "personality": "Analytical, cautious, and strategic",
+          "role": "Manages the investments of wealthy clients, notices unusual transactions involving large amounts of gleaming bullion.",
+          "mystery_intrigue": "Suspects a client of illegal trading in unregistered precious metals, but lacks concrete evidence."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Eleanor Brooks",
+          "age": 32,
+          "profession": "Investigative Journalist",
+          "personality": "Tenacious, curious, and ethical",
+          "role": "Investigates corruption in the mining industry, follows a lead on a hidden stash of radiant metal bars.",
+          "mystery_intrigue": "Uncovers a network of illegal precious metal trades, putting her life in danger."
+        }
+      }
+    },
+
+    "wagon-2": {
+      "player-1": {
+        "profile": {
+          "name": "Adrian North",
+          "age": 38,
+          "profession": "Adventurer and Cartographer",
+          "personality": "Brave, curious, and determined",
+          "role": "Leads the expedition through uncharted territories, using an antique navigation tool with a unique magnetic needle.",
+          "mystery_intrigue": "Carries a mysterious map that seems to guide them towards a hidden treasure, but the map has strange symbols that no one can decipher."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Elena Stone",
+          "age": 32,
+          "profession": "Archaeologist",
+          "personality": "Intelligent, meticulous, and resourceful",
+          "role": "Studies ancient artifacts found along the journey, including a small, intricately designed metal disk.",
+          "mystery_intrigue": "Has discovered clues suggesting the existence of a lost civilization, but keeps this information secret from the team."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Lucas West",
+          "age": 28,
+          "profession": "Botanist",
+          "personality": "Analytical, patient, and nurturing",
+          "role": "Identifies and documents new plant species, often seen with a small, engraved metal case containing rare seeds.",
+          "mystery_intrigue": "Finds a rare plant that has healing properties, but its location is marked by a peculiar symbol that resembles a directional pointer."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Sophia East",
+          "age": 35,
+          "profession": "Linguist",
+          "personality": "Insightful, empathetic, and communicative",
+          "role": "Deciphers ancient languages and symbols encountered during the expedition, carries a small, ornate metal pendant.",
+          "mystery_intrigue": "Uncovers a hidden language that seems to provide directions to a mysterious artifact, but the language is unlike anything she has ever seen."
+        }
+      }
+    },
+
+    "wagon-3": {
+      "player-1": {
+        "profile": {
+          "name": "Captain Elara Voss",
+          "age": 40,
+          "profession": "Submarine Captain",
+          "personality": "Courageous, strategic, and decisive",
+          "role": "Leads the expedition with an advanced submarine equipped with a unique spiral-shaped hull design.",
+          "mystery_intrigue": "Hiding a personal vendetta against a rival exploration company, which may influence her decisions and put the crew in danger."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Dr. Orion Kane",
+          "age": 35,
+          "profession": "Marine Archaeologist",
+          "personality": "Intellectual, curious, and meticulous",
+          "role": "Driven by the mystery of the underwater civilization, studies ancient maritime artifacts including a spiral-shaped pendant.",
+          "mystery_intrigue": "Has discovered a hidden artifact that could revolutionize their understanding of the underwater civilization, but keeps it secret."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Lieutenant Nova Sterling",
+          "age": 30,
+          "profession": "Naval Engineer",
+          "personality": "Innovative, resourceful, and practical",
+          "role": "Ensures the submarine's systems are operational, monitors signals received from the surface.",
+          "mystery_intrigue": "Receiving encrypted messages from an unknown source, warning her about an impending danger within the crew."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Professor Atlas Grey",
+          "age": 45,
+          "profession": "Oceanographer",
+          "personality": "Wise, patient, and analytical",
+          "role": "Provides scientific context for the underwater environment, possesses an old engraved timepiece.",
+          "mystery_intrigue": "Has uncovered evidence of a dangerous underwater creature that could threaten the expedition, but keeps this information to himself."
+        }
+      }
+    },
+
+    "wagon-4": {
+      "player-1": {
+        "profile": {
+          "name": "General Victor Blackwood",
+          "age": 55,
+          "profession": "Retired Military Commander",
+          "personality": "Honorable, stern, and strategic",
+          "role": "Leads a group of veterans on a quest to uncover the truth behind a legendary battle, carries an old, tattered map.",
+          "mystery_intrigue": "Haunted by a past decision that led to a devastating defeat, seeks redemption and closure."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Lady Isabella Sterling",
+          "age": 40,
+          "profession": "Historian",
+          "personality": "Intelligent, empathetic, and determined",
+          "role": "Documents the journey and interprets historical artifacts, including an antique pocket watch.",
+          "mystery_intrigue": "Discovers letters hinting at a secret alliance that could have changed the course of the battle, but keeps this information hidden."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Sergeant Marcus Thorne",
+          "age": 38,
+          "profession": "Former Infantryman",
+          "personality": "Loyal, brave, and resilient",
+          "role": "Provides security and support for the expedition, carries a worn, engraved flask.",
+          "mystery_intrigue": "Experiences vivid dreams of the battle, revealing clues about a hidden treasure, but fears being seen as unstable."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Dr. Charlotte Hartley",
+          "age": 35,
+          "profession": "Archaeologist",
+          "personality": "Curious, methodical, and analytical",
+          "role": "Excavates and studies battlefield remnants, including an old, mud-caked musket ball.",
+          "mystery_intrigue": "Uncovers evidence of a cover-up involving high-ranking officers, but struggles with the ethical implications of revealing the truth."
+        }
+      }
+    },
+
+    "wagon-5": {
+      "player-1": {
+        "profile": {
+          "name": "Maestro Lorenzo Rossi",
+          "age": 58,
+          "profession": "Conductor",
+          "personality": "Passionate, perfectionistic, and charismatic",
+          "role": "Leads a renowned orchestra, known for his innovative interpretations of classical pieces, especially those with intricate compositions.",
+          "mystery_intrigue": "Hides a rare, unpublished manuscript that could redefine musical history, but fears the controversy it might cause."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Isabella Valentina",
+          "age": 32,
+          "profession": "Violinist",
+          "personality": "Talented, expressive, and dedicated",
+          "role": "First chair violinist, captivates audiences with her emotional performances, often featuring complex, lively melodies.",
+          "mystery_intrigue": "Possesses an antique violin with a mysterious inscription, hinting at a hidden composition of immense significance."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Leonardo Di Marco",
+          "age": 45,
+          "profession": "Composer",
+          "personality": "Creative, introspective, and visionary",
+          "role": "Creates modern compositions inspired by classical themes, known for his ability to blend old and new musical styles.",
+          "mystery_intrigue": "Discovers a lost symphony that echoes the genius of past masters, but grapples with the ethical dilemma of claiming it as his own."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Sofia Caruso",
+          "age": 28,
+          "profession": "Opera Singer",
+          "personality": "Graceful, confident, and melodious",
+          "role": "Enchants audiences with her powerful vocals, specializing in arias that require exceptional range and technique.",
+          "mystery_intrigue": "Finds a hidden letter revealing a secret affair between two famous musicians, which could scandalize the musical world."
+        }
+      }
+    },
+
+    "wagon-6": {
+      "player-1": {
+        "profile": {
+          "name": "Leo 'Roar' Johnson",
+          "age": 42,
+          "profession": "Jazz Musician (Saxophonist)",
+          "personality": "Charismatic, bold, and innovative",
+          "role": "Leads a jazz band known for its wild, energetic performances, often featuring improvisations that evoke the sounds of the jungle.",
+          "mystery_intrigue": "Possesses a rare, antique saxophone with engravings of a mysterious jungle creature, hinting at a hidden treasure deep within the rainforest."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Lila 'Nightingale' Silva",
+          "age": 35,
+          "profession": "Jazz Singer",
+          "personality": "Melodious, enchanting, and free-spirited",
+          "role": "Captivates audiences with her soulful vocals, incorporating exotic bird songs and nature-inspired melodies into her performances.",
+          "mystery_intrigue": "Discovers an old map leading to a legendary jungle temple, guarded by a mythical beast, but keeps the map's existence a secret."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Rafael 'Panther' Martinez",
+          "age": 38,
+          "profession": "Percussionist",
+          "personality": "Rhythmic, intense, and intuitive",
+          "role": "Drives the band's rhythm section with primal beats and complex patterns, using instruments crafted from jungle materials.",
+          "mystery_intrigue": "Receives mysterious drum patterns in his dreams, which he believes are clues to an ancient jungle ritual, but fears the consequences of unleashing its power."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Elena 'Jaguar' Rodriguez",
+          "age": 30,
+          "profession": "Pianist",
+          "personality": "Elegant, fierce, and expressive",
+          "role": "Enthralls listeners with her dynamic piano solos, blending classical technique with the raw energy of the jungle.",
+          "mystery_intrigue": "Finds a hidden journal detailing a legendary jungle expedition, but the journal's warnings of a dangerous predator make her hesitant to reveal its contents."
+        }
+      }
+    },
+
+    "wagon-7": {
+      "player-1": {
+        "profile": {
+          "name": "Marco Valentino",
+          "age": 48,
+          "profession": "Wealthy Merchant",
+          "personality": "Ambitious, shrewd, and guarded",
+          "role": "Head of the influential Valentino family, embroiled in a long-standing rivalry with another powerful clan, carries an heirloom signet ring with a distinctive crest.",
+          "mystery_intrigue": "Haunted by a past betrayal that deepened the feud, seeks revenge while hiding a secret that could unite the families."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Giovanna Rosalia",
+          "age": 42,
+          "profession": "Noblewoman",
+          "personality": "Elegant, wise, and protective",
+          "role": "Matriarch of the Rosalia family, desires peace and unity, often seen with an antique brooch featuring intertwined roses and thorns.",
+          "mystery_intrigue": "Discovers an old love letter hinting at a forbidden romance between members of the rival families, but struggles with the implications of revealing it."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Father Lorenzo",
+          "age": 50,
+          "profession": "Priest",
+          "personality": "Compassionate, insightful, and resourceful",
+          "role": "Counsels both families and secretly aids the young lovers, carries a rosary with a unique heart-shaped pendant.",
+          "mystery_intrigue": "Knows of a hidden sanctuary where the lovers can meet, but fears the consequences of defying the powerful families."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Luca Montefiori",
+          "age": 35,
+          "profession": "Nobleman",
+          "personality": "Charismatic, determined, and proud",
+          "role": "Heir to the Montefiori fortune, seeks to marry into the Rosalia family for political gain, possesses a dagger with an engraved family crest.",
+          "mystery_intrigue": "Uncovers a plot to sabotage the upcoming wedding, which could reignite the feud and plunge the city into chaos."
+        }
+      }
+    },
+
+    "wagon-8": {
+      "player-1": {
+        "profile": {
+          "name": "Eleanor Voss",
+          "age": 38,
+          "profession": "Inventor",
+          "personality": "Creative, determined, and analytical",
+          "role": "Develops innovative sound recording devices, including a prototype with a unique cylinder design.",
+          "mystery_intrigue": "Discovers hidden recordings on an old cylinder that hint at a secret society communicating through coded messages."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Theodore Kane",
+          "age": 42,
+          "profession": "Engineer",
+          "personality": "Practical, resourceful, and meticulous",
+          "role": "Specializes in mechanical engineering, often seen working on intricate gears and components for sound devices.",
+          "mystery_intrigue": "Finds blueprints for an advanced device that can record and play back voices with unprecedented clarity, but the inventor's identity remains a mystery."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Victoria Sterling",
+          "age": 35,
+          "profession": "Musician",
+          "personality": "Passionate, expressive, and innovative",
+          "role": "Experiments with new musical instruments and recording techniques, carries a small, engraved metal case containing rare cylinders.",
+          "mystery_intrigue": "Receives anonymous letters containing cryptic messages and musical notes, hinting at a hidden melody with mysterious powers."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Edgar Grey",
+          "age": 40,
+          "profession": "Detective",
+          "personality": "Observant, tenacious, and intuitive",
+          "role": "Investigates cases of industrial espionage and stolen inventions, possesses a pocket watch with an engraved symbol.",
+          "mystery_intrigue": "Uncovers a plot to steal advanced sound recording technology, but struggles to identify the mastermind behind the scheme."
+        }
+      }
+    }
+  }
+}

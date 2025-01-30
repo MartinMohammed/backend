@@ -1,0 +1,215 @@
+{
+  "names": {
+    "wagon-0" : {
+      
+    },
+    "wagon-1": {
+      "player-1": {
+        "firstName": "Victor",
+        "lastName": "Sterling",
+        "sex": "male",
+        "fullName": "Victor Sterling"
+      },
+      "player-2": {
+        "firstName": "Isabella",
+        "lastName": "Hart",
+        "sex": "female",
+        "fullName": "Isabella Hart"
+      },
+      "player-3": {
+        "firstName": "Lucas",
+        "lastName": "Ford",
+        "sex": "male",
+        "fullName": "Lucas Ford"
+      },
+      "player-4": {
+        "firstName": "Eleanor",
+        "lastName": "Brooks",
+        "sex": "female",
+        "fullName": "Eleanor Brooks"
+      }
+    },
+    "wagon-2": {
+      "player-1": {
+        "firstName": "Adrian",
+        "lastName": "North",
+        "sex": "male",
+        "fullName": "Eleanor Brooks"
+      },
+      "player-2": {
+        "firstName": "Elena",
+        "lastName": "Stone",
+        "sex": "female",
+        "fullName": "Elena Stone"
+      },
+      "player-3": {
+        "firstName": "Lucas",
+        "lastName": "West",
+        "sex": "male",
+        "fullName": "Lucas West"
+      },
+      "player-4": {
+        "firstName": "Sophia",
+        "lastName": "East",
+        "sex": "female",
+        "fullName": "Sophia East"
+      }
+    },
+    "wagon-3": {
+      "player-1": {
+        "firstName": "Captain Elara",
+        "lastName": "Voss",
+        "sex": "female",
+        "fullName": "Captain Elara Voss"
+      },
+      "player-2": {
+        "firstName": "Dr. Orion",
+        "lastName": "Kane",
+        "sex": "male",
+        "fullName": "Dr. Orion Kane"
+      },
+      "player-3": {
+        "firstName": "Lieutenant Nova",
+        "lastName": "Sterling",
+        "sex": "female",
+        "fullName": "Lieutenant Nova Sterling"
+      },
+      "player-4": {
+        "firstName": "Professor Atlas",
+        "lastName": "Grey",
+        "sex": "male",
+        "fullName": "Professor Atlas Grey"
+      }
+    },
+    "wagon-4": {
+      "player-1": {
+        "firstName": "General Victor",
+        "lastName": "Blackwood",
+        "sex": "male",
+        "fullName": "General Victor Blackwood"
+      },
+      "player-2": {
+        "firstName": "Lady Isabella",
+        "lastName": "Sterling",
+        "sex": "female",
+        "fullName": "Lady Isabella Sterling"
+      },
+      "player-3": {
+        "firstName": "Sergeant Marcus",
+        "lastName": "Thorne",
+        "sex": "male",
+        "fullName": "Noah Davis"
+      },
+      "player-4": {
+        "firstName": "Dr. Charlotte",
+        "lastName": "Hartley",
+        "sex": "female",
+        "fullName": "Dr. Charlotte Hartley"
+      }
+    },
+    "wagon-5": {
+      "player-1": {
+        "firstName": "Maestro Lorenzo",
+        "lastName": "Rossi",
+        "sex": "male",
+        "fullName": "Maestro Lorenzo Rossi"
+      },
+      "player-2": {
+        "firstName": "Isabella",
+        "lastName": "Valentina",
+        "sex": "female",
+        "fullName": "Isabella Valentina"
+      },
+      "player-3": {
+        "firstName": "Leonardo",
+        "lastName": "Di Marco",
+        "sex": "male",
+        "fullName": "Leonardo Di Marco"
+      },
+      "player-4": {
+        "firstName": "Sofia",
+        "lastName": "Caruso",
+        "sex": "female",
+        "fullName": "Sofia Caruso"
+      }
+    },
+    "wagon-6": {
+      "player-1": {
+        "firstName": "Leo 'Roar'",
+        "lastName": "Johnson",
+        "sex": "male",
+        "fullName": "Leo 'Roar' Johnson"
+      },
+      "player-2": {
+        "firstName": "Lila 'Nightingale'",
+        "lastName": "Silva",
+        "sex": "female",
+        "fullName": "Lady Olivia Wright"
+      },
+      "player-3": {
+        "firstName": "Rafael 'Panther'",
+        "lastName": "Martinez",
+        "sex": "male",
+        "fullName": "Rafael 'Panther' Martinez"
+      },
+      "player-4": {
+        "firstName": "Elena 'Jaguar'",
+        "lastName": "Rodriguez",
+        "sex": "female",
+        "fullName": "Elena 'Jaguar' Rodriguez"
+      }
+    },
+    "wagon-7": {
+      "player-1": {
+        "firstName": "Marco",
+        "lastName": "Valentino",
+        "sex": "male",
+        "fullName": "Marco Valentino"
+      },
+      "player-2": {
+        "firstName": "Giovanna",
+        "lastName": "Rosalia",
+        "sex": "female",
+        "fullName": "Giovanna Rosalia"
+      },
+      "player-3": {
+        "firstName": "Father",
+        "lastName": "Lorenzo",
+        "sex": "male",
+        "fullName": "Father Lorenzo"
+      },
+      "player-4": {
+        "firstName": "Luca",
+        "lastName": "Montefiori",
+        "sex": "male",
+        "fullName": "Luca Montefiori"
+      }
+    },
+    "wagon-8": {
+      "player-1": {
+        "firstName": "Eleanor",
+        "lastName": "Voss",
+        "sex": "male",
+        "fullName": "Eleanor Voss"
+      },
+      "player-2": {
+        "firstName": "Theadore",
+        "lastName": "Kane",
+        "sex": "female",
+        "fullName": "Theadore Kane"
+      },
+      "player-3": {
+        "firstName": "Victoria",
+        "lastName": "Sterling",
+        "sex": "female",
+        "fullName": "Victoria Sterling"
+      },
+      "player-4": {
+        "firstName": "Edgar",
+        "lastName": "Grey",
+        "sex": "male",
+        "fullName": "Edgar Grey"
+      }
+    }
+  }
+}

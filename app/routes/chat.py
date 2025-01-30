@@ -35,6 +35,10 @@ class GuessResponse(BaseModel):
     score: float
 
 
+def get_chat_service():
+    return ChatService()
+
+
 def get_guess_service():
     return GuessingService()
 
@@ -55,7 +59,6 @@ class ChatMessage(BaseModel):
 def get_session(session_id: str) -> UserSession:
     """Dependency to get and validate session"""
     session = SessionService.get_session(session_id)
-    logger.info(f"Session found: {session}")
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return session
@@ -134,17 +137,13 @@ async def chat_with_character(
     uid: str,
     chat_message: ChatMessage,
     session: UserSession = Depends(get_session),
+    chat_service: ChatService = Depends(get_chat_service),
     tts_service: TTSService = Depends(get_tts_service),
 ) -> dict:
     """
     Send a message to a character and get their response.
     The input is a JSON containing the prompt and related data.
     """
-
-    # Get the chat service, that loads the character details
-    chat_service = ChatService(session)
-
-    # add first checks that the user exists 
     try:
         wagon_id = int(uid.split("-")[1])
         if wagon_id != session.current_wagon.wagon_id:
