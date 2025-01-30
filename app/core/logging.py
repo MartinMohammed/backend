@@ -31,7 +31,7 @@ def setup_logging() -> None:
     os.makedirs("logs", exist_ok=True)
     
     logger = logging.getLogger("game_jam")
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     # Console handler with JSON formatting
     console_handler = logging.StreamHandler()
