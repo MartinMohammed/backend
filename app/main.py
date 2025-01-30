@@ -40,7 +40,7 @@ app = FastAPI(
 #
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # "https://your-custom-domain.com" if credentials are needed
+    allow_origins=["https://mistral-ai-game-jam-neuraljam.static.hf.space"],
     allow_credentials=False,  # Must be False if allow_origins=["*"] in modern browsers
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"],
     allow_headers=["*"],  # You could limit this to ["Accept", "X-Access-Token", ...] if desired
