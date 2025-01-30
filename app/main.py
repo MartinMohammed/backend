@@ -1,10 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import health, wagons, chat, players, generate
-from app.core.logging import get_logger
+from app.core.logging import get_logger, setup_logging
 from dotenv import load_dotenv
 from datetime import datetime
 import time
+from pathlib import Path
 
 # Load environment variables
 load_dotenv()
@@ -25,7 +26,7 @@ app = FastAPI(
 # 1. Configure CORS for Unity Web Requests
 # -----------------------------------------------------------------------------
 #
-# Unity’s documentation highlights the need for the following CORS headers:
+# Unity's documentation highlights the need for the following CORS headers:
 #   "Access-Control-Allow-Origin": "*",
 #   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 #   "Access-Control-Allow-Headers": "Accept, X-Access-Token, X-Application-Name, X-Request-Sent-Time",
@@ -35,7 +36,7 @@ app = FastAPI(
 # This is the simplest approach. If you need cookies or authentication headers,
 # switch `allow_origins` to an explicit domain and set `allow_credentials=True`.
 #
-# Note: We also allow PUT, DELETE, etc., but that’s up to your application needs.
+# Note: We also allow PUT, DELETE, etc., but that's up to your application needs.
 #
 app.add_middleware(
     CORSMiddleware,
@@ -170,4 +171,14 @@ async def root():
         "chat_endpoint": "/api/chat",
         "players_endpoint": "/api/players"
     }
+
+# Ensure logs directory exists and setup logging at startup
+@app.on_event("startup")
+async def startup_event():
+    # Create logs directory if it doesn't exist
+    logs_dir = Path("logs")
+    logs_dir.mkdir(exist_ok=True)
+    
+    # Initialize logging
+    setup_logging()
 

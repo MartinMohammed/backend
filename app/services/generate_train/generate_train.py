@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from typing import Tuple, Dict, Any
 from app.core.logging import LoggerMixin
 from app.services.generate_train.convert import convert_and_return_jsons
+from app.core.logging import get_logger
 
 
 class GenerateTrainService(LoggerMixin):
@@ -31,6 +32,7 @@ class GenerateTrainService(LoggerMixin):
             self.logger.error(f"Invalid number of wagons requested: {num_wagons}")
             return "Please provide a valid number of wagons (1-10)."
 
+    # Prompt Mistral API to generate a theme and passcodes
         prompt = f"""
         This is a video game about a player trying to reach the locomotive of a train by finding a passcode for each wagon.
         You are tasked with generating unique passcodes for the wagons based on the theme '{theme}', to make the game more engaging, fun, and with a sense of progression.
@@ -47,15 +49,16 @@ class GenerateTrainService(LoggerMixin):
         }}
         Now, generate a theme and passcodes.
         """
+        response = self.client.chat.complete(
+            model="mistral-large-latest",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.8,
+        )
 
         try:
-            response = self.client.chat.complete(
-                model="mistral-large-latest",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1000,
-                temperature=0.8,
-            )
-
             result = json.loads(response.choices[0].message.content.replace("```json\n", "").replace("\n```", ""))
             passcodes = result["passcodes"]
             self.logger.info(f"Successfully generated {len(passcodes)} passcodes")
@@ -72,6 +75,7 @@ class GenerateTrainService(LoggerMixin):
         """Generate passengers for a wagon using Mistral AI"""
         self.logger.info(f"Generating {num_passengers} passengers for wagon with passcode: {passcode}")
 
+         # Generate passengers with the Mistral API
         prompt = f"""
         Passengers are in a wagon. The player can interact with them to learn more about their stories.
         The following is a list of passengers on a train wagon. The wagon is protected by the passcode "{passcode}".
@@ -130,21 +134,18 @@ class GenerateTrainService(LoggerMixin):
 
         Now generate the JSON array:
         """
+        response = self.client.chat.complete(
+            model="mistral-large-latest",
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.8,
+        )
+
 
         try:
-            response = self.client.chat.complete(
-                model="mistral-large-latest",
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=1000,
-                temperature=0.8,
-            )
-
-            passengers = json.loads(
-                response.choices[0].message.content
-                .replace("```json\n", "")
-                .replace("\n```", "")
-                .replace(passcode, "<redacted>")
-            )
+            passengers = json.loads(response.choices[0].message.content.replace("```json\n", "").replace("\n```", "").replace(passcode, "<redacted>"))
             self.logger.info(f"Successfully generated {len(passengers)} passengers")
             return passengers
 
@@ -162,60 +163,116 @@ class GenerateTrainService(LoggerMixin):
         try:
             if min_passengers > max_passengers:
                 self.logger.error("Minimum passengers cannot be greater than maximum passengers")
-                return "Minimum passengers cannot be greater than maximum passengers."
+                raise ValueError("Minimum passengers cannot be greater than maximum passengers")
 
             # Generate passcodes
             passcodes = self.generate_wagon_passcodes(theme, num_wagons)
-            if isinstance(passcodes, str):  # If there's an error, return it
-                return passcodes
-
+            if isinstance(passcodes, str):  # If there's an error message
+                self.logger.error(f"Error generating passcodes: {passcodes}")
+                raise ValueError(f"Failed to generate passcodes: {passcodes}")
+            
             # Generate wagons with passengers
             wagons = []
             wagons.append({
-                "id": 0,
-                "theme": "Tutorial (Start)",
-                "passcode": "start",
-                "passengers": []
+            "id": 0,
+            "theme": "Tutorial (Start)",
+            "passcode": "start",
+            "passengers": []
             })
-
             for i, passcode in enumerate(passcodes):
                 num_passengers = random.randint(min_passengers, max_passengers)
                 passengers = self.generate_passengers_for_wagon(passcode, num_passengers)
-                wagons.append({
-                    "id": i + 1,
-                    "theme": theme,
-                    "passcode": passcode,
-                    "passengers": passengers
-                })
+                  # Check if passengers is a string (error message)
+                if isinstance(passengers, str):
+                    self.logger.error(f"Error generating passengers: {passengers}")
+                    raise ValueError(f"Failed to generate passengers: {passengers}")
+                wagons.append({"id": i + 1, "theme": theme, "passcode": passcode, "passengers": passengers})
 
             self.logger.info(f"Successfully generated train with {len(wagons)} wagons")
             return json.dumps(wagons, indent=4)
 
         except Exception as e:
             self.logger.error(f"Error in generate_train_json: {e}")
-            return f"Error generating train: {str(e)}"
+            raise ValueError(f"Failed to generate train: {str(e)}")
 
     def generate_train(self, theme: str, num_wagons: int) -> Tuple[Dict, Dict, Dict]:
         """Main method to generate complete train data"""
-        self.logger.info(f"Starting train generation for theme: {theme}, num_wagons: {num_wagons}")
+        self.logger.info(
+            "Starting train generation",
+            extra={
+                "theme": theme,
+                "num_wagons": num_wagons,
+                "service": "GenerateTrainService"
+            }
+        )
         
         try:
+            # Log attempt to generate train JSON
+            self.logger.debug(
+                "Generating train JSON",
+                extra={
+                    "theme": theme,
+                    "num_wagons": num_wagons,
+                    "min_passengers": 2,
+                    "max_passengers": 10
+                }
+            )
+            
             wagons_json = self.generate_train_json(theme, num_wagons, 2, 10)
+            
+            # Log successful JSON generation and parse attempt
+            self.logger.debug(
+                "Train JSON generated, parsing to dict",
+                extra={
+                    "json_length": len(wagons_json)
+                }
+            )
+            
             wagons = json.loads(wagons_json)
+            
+            # Log conversion attempt
+            self.logger.debug(
+                "Converting wagon data to final format",
+                extra={
+                    "num_wagons": len(wagons)
+                }
+            )
             
             all_names, all_player_details, all_wagons = convert_and_return_jsons(wagons)
             
-            self.logger.info("Successfully completed train generation")
-            return all_names, all_player_details, all_wagons
+            # Log successful generation with summary
+            self.logger.info(
+                "Train generation completed successfully",
+                extra={
+                    "theme": theme,
+                    "total_wagons": len(all_wagons["wagons"]),
+                    "total_names": len(all_names["names"]),
+                    "total_player_details": len(all_player_details["player_details"])
+                }
+            )
             
+            return all_names, all_player_details, all_wagons
+
+        except json.JSONDecodeError as e:
+            self.logger.error(
+                "JSON parsing error in generate_train",
+                extra={
+                    "error_type": "JSONDecodeError",
+                    "error_msg": str(e),
+                    "theme": theme,
+                    "num_wagons": num_wagons
+                }
+            )
+            raise HTTPException(status_code=500, detail=f"Failed to parse train JSON: {str(e)}")
+        
         except Exception as e:
-            self.logger.error(f"Error in generate_train: {e}")
+            self.logger.error(
+                "Error in generate_train",
+                extra={
+                    "error_type": type(e).__name__,
+                    "error_msg": str(e),
+                    "theme": theme,
+                    "num_wagons": num_wagons
+                }
+            )
             raise HTTPException(status_code=500, detail=f"Failed to generate train: {str(e)}")
-
-
-# Create a singleton instance
-generate_train_service = GenerateTrainService()
-
-# Function to be used by the route
-def generate_train(theme: str, num_wagons: int) -> Tuple[Dict, Dict, Dict]:
-    return generate_train_service.generate_train(theme, num_wagons)
