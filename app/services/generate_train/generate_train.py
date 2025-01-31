@@ -139,8 +139,8 @@ class GenerateTrainService(LoggerMixin):
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=1000,
-            temperature=0.8,
+            max_tokens=1250,
+            temperature=0.7,
         )
 
 

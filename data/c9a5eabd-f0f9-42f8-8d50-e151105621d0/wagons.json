@@ -1,0 +1,84 @@
+{
+  "wagons": [
+    {
+      "id": 0,
+      "theme": "Tutorial (Start)",
+      "passcode": "start",
+      "people": []
+    },
+    {
+      "id": 1,
+      "theme": "Minecraft",
+      "passcode": "Creeper",
+      "people": [
+        {
+          "uid": "wagon-1-player-1",
+          "position": [
+            0.8,
+            0.15
+          ],
+          "rotation": 0.04,
+          "model_type": "character-female-e",
+          "items": []
+        },
+        {
+          "uid": "wagon-1-player-2",
+          "position": [
+            0.9,
+            0.44
+          ],
+          "rotation": 0.12,
+          "model_type": "character-male-e",
+          "items": []
+        },
+        {
+          "uid": "wagon-1-player-3",
+          "position": [
+            0.75,
+            0.77
+          ],
+          "rotation": 0.76,
+          "model_type": "character-female-a",
+          "items": []
+        },
+        {
+          "uid": "wagon-1-player-4",
+          "position": [
+            0.74,
+            0.06
+          ],
+          "rotation": 0.3,
+          "model_type": "character-male-a",
+          "items": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "theme": "Minecraft",
+      "passcode": "Enderpearl",
+      "people": [
+        {
+          "uid": "wagon-2-player-1",
+          "position": [
+            0.62,
+            0.07
+          ],
+          "rotation": 0.17,
+          "model_type": "character-female-e",
+          "items": []
+        },
+        {
+          "uid": "wagon-2-player-2",
+          "position": [
+            0.63,
+            0.79
+          ],
+          "rotation": 0.67,
+          "model_type": "character-male-d",
+          "items": []
+        }
+      ]
+    }
+  ]
+}

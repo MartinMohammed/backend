@@ -1,0 +1,45 @@
+{
+  "names": {
+    "wagon-0": {},
+    "wagon-1": {
+      "player-1": {
+        "firstName": "Dr. Amelia",
+        "lastName": "Hartley",
+        "sex": "female",
+        "fullName": "Dr. Amelia Hartley"
+      },
+      "player-2": {
+        "firstName": "Thomas",
+        "lastName": "Rutherford",
+        "sex": "male",
+        "fullName": "Thomas Rutherford"
+      },
+      "player-3": {
+        "firstName": "Maria",
+        "lastName": "Vasquez",
+        "sex": "female",
+        "fullName": "Maria Vasquez"
+      },
+      "player-4": {
+        "firstName": "Alexei",
+        "lastName": "Petrov",
+        "sex": "male",
+        "fullName": "Alexei Petrov"
+      }
+    },
+    "wagon-2": {
+      "player-1": {
+        "firstName": "Dr. Amelia",
+        "lastName": "Hartley",
+        "sex": "female",
+        "fullName": "Dr. Amelia Hartley"
+      },
+      "player-2": {
+        "firstName": "Edgar",
+        "lastName": "Stone",
+        "sex": "male",
+        "fullName": "Edgar Stone"
+      }
+    }
+  }
+}

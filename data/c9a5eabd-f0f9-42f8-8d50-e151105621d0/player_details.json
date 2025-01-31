@@ -1,0 +1,69 @@
+{
+  "player_details": {
+    "wagon-0": {},
+    "wagon-1": {
+      "player-1": {
+        "profile": {
+          "name": "Dr. Amelia Hartley",
+          "age": 45,
+          "profession": "Botanist",
+          "personality": "Methodical, inquisitive, and reserved",
+          "role": "Studies rare plants in remote areas, recently discovered a plant with unusual properties.",
+          "mystery_intrigue": "The plant can emit a strange glow at night, which has piqued the interest of a secret organization. She is wary of the organization's intentions."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Thomas Rutherford",
+          "age": 38,
+          "profession": "Geologist",
+          "personality": "Analytical, adventurous, and persistent",
+          "role": "Explores underground formations, recently found an ancient network of tunnels.",
+          "mystery_intrigue": "The tunnels are filled with symbols resembling the word '<redacted>'. He believes they are linked to an ancient civilization."
+        }
+      },
+      "player-3": {
+        "profile": {
+          "name": "Maria Vasquez",
+          "age": 28,
+          "profession": "Archaeologist",
+          "personality": "Curious, meticulous, and resourceful",
+          "role": "Specializes in ancient civilizations, currently studying a series of mysterious artifacts.",
+          "mystery_intrigue": "The artifacts bear the same symbols found in the tunnels. She suspects they are keys to unlocking a powerful secret."
+        }
+      },
+      "player-4": {
+        "profile": {
+          "name": "Alexei Petrov",
+          "age": 60,
+          "profession": "Historian",
+          "personality": "Wise, scholarly, and introspective",
+          "role": "Researches the history of ancient civilizations, has a deep knowledge of forgotten languages.",
+          "mystery_intrigue": "Has deciphered part of the symbols, which hint at a hidden treasure guarded by a '<redacted>'. He is cautious about sharing his findings."
+        }
+      }
+    },
+    "wagon-2": {
+      "player-1": {
+        "profile": {
+          "name": "Dr. Amelia Hartley",
+          "age": 45,
+          "profession": "Marine Biologist",
+          "personality": "Inquisitive, patient, and determined",
+          "role": "Studies rare underwater creatures and their habitats, recently returned from an expedition to an uncharted island.",
+          "mystery_intrigue": "Discovered a mysterious pearl with unusual properties, which she has hidden away. The pearl is said to have a magical glow."
+        }
+      },
+      "player-2": {
+        "profile": {
+          "name": "Edgar Stone",
+          "age": 38,
+          "profession": "Antique Dealer",
+          "personality": "Charming, resourceful, and enigmatic",
+          "role": "Specialized in ancient artifacts and rare collectibles, often travels to exotic locations for his business.",
+          "mystery_intrigue": "Is searching for a legendary pearl with a unique glow, rumored to possess supernatural powers. Believes Dr. Hartley might have it."
+        }
+      }
+    }
+  }
+}
