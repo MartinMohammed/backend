@@ -25,6 +25,7 @@ class FileManager(LoggerMixin):
     def save_session_data(cls, session_id: str, names: Dict, player_details: Dict, wagons: Dict) -> None:
         """Save the three main data files for a session"""
         session_dir = cls.create_session_directory(session_id)
+        logger = cls.get_logger()
         
         # Save each file
         files_to_save = {
@@ -36,7 +37,7 @@ class FileManager(LoggerMixin):
         for filename, data in files_to_save.items():
             file_path = session_dir / filename
             cls.save_json(file_path, data)
-            cls.get_logger().info(f"Saved {filename} for session {session_id}")
+            logger.info(f"Saved session data | session_id={session_id} | filename={filename} | path={file_path}")
 
     @classmethod
     def get_data_directory(cls, session_id: str, default_game: bool) -> Path:
@@ -48,9 +49,11 @@ class FileManager(LoggerMixin):
     @classmethod
     def load_session_data(cls, session_id: str, default_game: bool = True) -> tuple[Dict, Dict, Dict]:
         """Load all data files for a session"""
+        logger = cls.get_logger()
         data_dir = cls.get_data_directory(session_id, default_game)
+        
         if not data_dir.exists():
-            cls.get_logger().error(f"Data directory not found: {data_dir}")
+            logger.error(f"Data directory not found | session_id={session_id} | directory={data_dir}")
             raise FileNotFoundError(f"No data found for session {session_id}")
 
         try:
@@ -58,17 +61,15 @@ class FileManager(LoggerMixin):
             player_details = cls.load_json(data_dir / "player_details.json")
             wagons = cls.load_json(data_dir / "wagons.json")
             
-            cls.get_logger().info(
-                f"Loaded session data from {'default' if default_game else 'session'} directory",
-                extra={
-                    "session_id": session_id,
-                    "directory": str(data_dir)
-                }
+            logger.info(
+                f"Loaded session data | session_id={session_id} | "
+                f"source={'default' if default_game else 'session'} | "
+                f"directory={data_dir}"
             )
             return names, player_details, wagons
             
         except FileNotFoundError as e:
-            cls.get_logger().error(f"Failed to load required files from {data_dir}: {str(e)}")
+            logger.error(f"Failed to load files | session_id={session_id} | directory={data_dir} | error={str(e)}")
             raise FileNotFoundError(f"Missing required data files in {data_dir}")
 
     @staticmethod

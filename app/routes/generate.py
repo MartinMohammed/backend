@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from app.services.generate_train.generate_train import GenerateTrainService
-from app.services.generate_train.generate_train import GenerateTrainService
-from app.models.train import GenerateTrainResponse, Names, PlayerDetailsResponse, WagonsResponse
+from app.models.train import GenerateTrainResponse
 from app.utils.file_management import FileManager
 from app.core.logging import get_logger
 from app.services.session_service import SessionService
+import json 
 
 
 router = APIRouter(
@@ -14,77 +14,12 @@ router = APIRouter(
 
 logger = get_logger("generate")
 
-@router.get(
-    "/train/{session_id}/{number_of_wagons}/{theme}",
-    response_model=GenerateTrainResponse,
-    summary="Generate a new train for a session",
-    description="""
-    Generates a new train with the specified number of wagons and theme for a given session.
-    Each wagon contains:
-    - A unique passcode related to the theme
-    - Multiple passengers with generated names and profiles
-    - Theme-specific details and characteristics
-    """,
-    responses={
-        200: {
-            "description": "Successfully generated train data",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "names": {
-                            "names": {
-                                "wagon-1": {
-                                    "player-1": {"first_name": "John", "last_name": "Doe"}
-                                }
-                            }
-                        },
-                        "player_details": {
-                            "player_details": {
-                                "wagon-1": {
-                                    "player-1": {"profile": {"age": 30, "occupation": "Engineer"}}
-                                }
-                            }
-                        },
-                        "wagons": {
-                            "wagons": {
-                                "wagon-1": {"theme": "Space", "passcode": "Nebula"}
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        400: {
-            "description": "Invalid request parameters",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "number_of_wagons must be between 1 and 6"}
-                }
-            }
-        },
-        404: {
-            "description": "Session not found",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Session not found"}
-                }
-            }
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Failed to generate train: Internal error"}
-                }
-            }
-        }
-    }
-)
+@router.get("/train/{session_id}/{number_of_wagons}/{theme}")
 async def get_generated_train(
     session_id: str,
     number_of_wagons: str,
     theme: str
-) -> GenerateTrainResponse:
+):
     """
     Generate a new train with specified parameters for a session.
     
@@ -110,22 +45,22 @@ async def get_generated_train(
         raise HTTPException(status_code=400, detail="number_of_wagons cannot exceed 6")
 
     try:
-        
         generate_train_service = GenerateTrainService()
-        names, player_details, wagons = generate_train_service.generate_train(theme, number_of_wagons)
-        FileManager.save_session_data(session_id, names, player_details, wagons)
+        names_data, player_details_data, wagons_data = generate_train_service.generate_train(theme, number_of_wagons)
+        
+        # Save the raw data
+        FileManager.save_session_data(session_id, names_data, player_details_data, wagons_data)
 
-        response = GenerateTrainResponse(
-            names=Names(names=names["names"]),
-            player_details=PlayerDetailsResponse(player_details=player_details["player_details"]),
-            wagons=WagonsResponse(wagons=wagons["wagons"])
-        )
+        # Construct response with proper schema
+        response = {
+            "names": names_data,
+            "player_details": player_details_data,
+            "wagons": wagons_data
+        }
 
         logger.info(f"Setting default_game to False | session_id={session_id}")
         session.default_game = False 
-        # update the central state of the session 
         SessionService.update_session(session)
-
         return response
         
     except Exception as e:

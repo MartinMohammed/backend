@@ -1,52 +1,62 @@
-{
-  "player_details": {
-    "wagon-0": {},
-
-    "wagon-1": {
-      "player-1": {
+[
+  {
+    "wagonId": "wagon-0",
+    "players": []
+  },
+  {
+    "wagonId": "wagon-1",
+    "players": [
+      {
+        "playerId": "player-1",
         "profile": {
-          "name": "Victor Sterling",
-          "age": 55,
-          "profession": "Mining Magnate",
-          "personality": "Ambitious, cunning, and charismatic",
-          "role": "Owns a vast mining empire, recently discovered a new vein of precious metal with a peculiar luster.",
-          "mystery_intrigue": "Secretly trades in unregistered precious metals, hiding a fortune in a secure vault."
-        }
-      },
-      "player-2": {
-        "profile": {
-          "name": "Isabella Hart",
-          "age": 38,
-          "profession": "Jewelry Designer",
-          "personality": "Creative, passionate, and meticulous",
-          "role": "Designs exquisite jewelry for the elite, recently commissioned to create pieces from a rare, gleaming metal.",
-          "mystery_intrigue": "Receives anonymous shipments of raw, lustrous metal, unaware of its true origin."
-        }
-      },
-      "player-3": {
-        "profile": {
-          "name": "Lucas Ford",
+          "name": "James Sterling",
           "age": 42,
-          "profession": "Financial Advisor",
-          "personality": "Analytical, cautious, and strategic",
-          "role": "Manages the investments of wealthy clients, notices unusual transactions involving large amounts of gleaming bullion.",
-          "mystery_intrigue": "Suspects a client of illegal trading in unregistered precious metals, but lacks concrete evidence."
+          "profession": "Investment Banker",
+          "personality": "Ambitious and calculating",
+          "role": "A successful banker with questionable ethics",
+          "mystery_intrigue": "Has been manipulating gold prices for personal gain"
         }
       },
-      "player-4": {
+      {
+        "playerId": "player-2",
         "profile": {
-          "name": "Eleanor Brooks",
-          "age": 32,
-          "profession": "Investigative Journalist",
-          "personality": "Tenacious, curious, and ethical",
-          "role": "Investigates corruption in the mining industry, follows a lead on a hidden stash of radiant metal bars.",
-          "mystery_intrigue": "Uncovers a network of illegal precious metal trades, putting her life in danger."
+          "name": "Elizabeth Chen",
+          "age": 35,
+          "profession": "Financial Analyst",
+          "personality": "Sharp-minded and detail-oriented",
+          "role": "Whistleblower investigating financial fraud",
+          "mystery_intrigue": "Has evidence of major market manipulation"
+        }
+      },
+      {
+        "playerId": "player-3",
+        "profile": {
+          "name": "Marcus Thompson",
+          "age": 45,
+          "profession": "Securities Regulator",
+          "personality": "Stern and methodical",
+          "role": "Investigating suspicious trading patterns",
+          "mystery_intrigue": "Close to uncovering a major financial scandal"
+        }
+      },
+      {
+        "playerId": "player-4",
+        "profile": {
+          "name": "Sofia Rodriguez",
+          "age": 38,
+          "profession": "Corporate Lawyer",
+          "personality": "Shrewd and diplomatic",
+          "role": "Legal counsel involved in the investigation",
+          "mystery_intrigue": "May be working for both sides"
         }
       }
-    },
-
-    "wagon-2": {
-      "player-1": {
+    ]
+  },
+  {
+    "wagonId": "wagon-2",
+    "players": [
+      {
+        "playerId": "player-1",
         "profile": {
           "name": "Adrian North",
           "age": 38,
@@ -56,7 +66,8 @@
           "mystery_intrigue": "Carries a mysterious map that seems to guide them towards a hidden treasure, but the map has strange symbols that no one can decipher."
         }
       },
-      "player-2": {
+      {
+        "playerId": "player-2",
         "profile": {
           "name": "Elena Stone",
           "age": 32,
@@ -66,7 +77,8 @@
           "mystery_intrigue": "Has discovered clues suggesting the existence of a lost civilization, but keeps this information secret from the team."
         }
       },
-      "player-3": {
+      {
+        "playerId": "player-3",
         "profile": {
           "name": "Lucas West",
           "age": 28,
@@ -76,7 +88,8 @@
           "mystery_intrigue": "Finds a rare plant that has healing properties, but its location is marked by a peculiar symbol that resembles a directional pointer."
         }
       },
-      "player-4": {
+      {
+        "playerId": "player-4",
         "profile": {
           "name": "Sophia East",
           "age": 35,
@@ -86,10 +99,13 @@
           "mystery_intrigue": "Uncovers a hidden language that seems to provide directions to a mysterious artifact, but the language is unlike anything she has ever seen."
         }
       }
-    },
-
-    "wagon-3": {
-      "player-1": {
+    ]
+  },
+  {
+    "wagonId": "wagon-3",
+    "players": [
+      {
+        "playerId": "player-1",
         "profile": {
           "name": "Captain Elara Voss",
           "age": 40,
@@ -99,7 +115,8 @@
           "mystery_intrigue": "Hiding a personal vendetta against a rival exploration company, which may influence her decisions and put the crew in danger."
         }
       },
-      "player-2": {
+      {
+        "playerId": "player-2",
         "profile": {
           "name": "Dr. Orion Kane",
           "age": 35,
@@ -109,7 +126,8 @@
           "mystery_intrigue": "Has discovered a hidden artifact that could revolutionize their understanding of the underwater civilization, but keeps it secret."
         }
       },
-      "player-3": {
+      {
+        "playerId": "player-3",
         "profile": {
           "name": "Lieutenant Nova Sterling",
           "age": 30,
@@ -119,7 +137,8 @@
           "mystery_intrigue": "Receiving encrypted messages from an unknown source, warning her about an impending danger within the crew."
         }
       },
-      "player-4": {
+      {
+        "playerId": "player-4",
         "profile": {
           "name": "Professor Atlas Grey",
           "age": 45,
@@ -129,10 +148,13 @@
           "mystery_intrigue": "Has uncovered evidence of a dangerous underwater creature that could threaten the expedition, but keeps this information to himself."
         }
       }
-    },
-
-    "wagon-4": {
-      "player-1": {
+    ]
+  },
+  {
+    "wagonId": "wagon-4",
+    "players": [
+      {
+        "playerId": "player-1",
         "profile": {
           "name": "General Victor Blackwood",
           "age": 55,
@@ -142,7 +164,8 @@
           "mystery_intrigue": "Haunted by a past decision that led to a devastating defeat, seeks redemption and closure."
         }
       },
-      "player-2": {
+      {
+        "playerId": "player-2",
         "profile": {
           "name": "Lady Isabella Sterling",
           "age": 40,
@@ -152,7 +175,8 @@
           "mystery_intrigue": "Discovers letters hinting at a secret alliance that could have changed the course of the battle, but keeps this information hidden."
         }
       },
-      "player-3": {
+      {
+        "playerId": "player-3",
         "profile": {
           "name": "Sergeant Marcus Thorne",
           "age": 38,
@@ -162,7 +186,8 @@
           "mystery_intrigue": "Experiences vivid dreams of the battle, revealing clues about a hidden treasure, but fears being seen as unstable."
         }
       },
-      "player-4": {
+      {
+        "playerId": "player-4",
         "profile": {
           "name": "Dr. Charlotte Hartley",
           "age": 35,
@@ -172,10 +197,13 @@
           "mystery_intrigue": "Uncovers evidence of a cover-up involving high-ranking officers, but struggles with the ethical implications of revealing the truth."
         }
       }
-    },
-
-    "wagon-5": {
-      "player-1": {
+    ]
+  },
+  {
+    "wagonId": "wagon-5",
+    "players": [
+      {
+        "playerId": "player-1",
         "profile": {
           "name": "Maestro Lorenzo Rossi",
           "age": 58,
@@ -185,7 +213,8 @@
           "mystery_intrigue": "Hides a rare, unpublished manuscript that could redefine musical history, but fears the controversy it might cause."
         }
       },
-      "player-2": {
+      {
+        "playerId": "player-2",
         "profile": {
           "name": "Isabella Valentina",
           "age": 32,
@@ -195,7 +224,8 @@
           "mystery_intrigue": "Possesses an antique violin with a mysterious inscription, hinting at a hidden composition of immense significance."
         }
       },
-      "player-3": {
+      {
+        "playerId": "player-3",
         "profile": {
           "name": "Leonardo Di Marco",
           "age": 45,
@@ -205,7 +235,8 @@
           "mystery_intrigue": "Discovers a lost symphony that echoes the genius of past masters, but grapples with the ethical dilemma of claiming it as his own."
         }
       },
-      "player-4": {
+      {
+        "playerId": "player-4",
         "profile": {
           "name": "Sofia Caruso",
           "age": 28,
@@ -215,10 +246,13 @@
           "mystery_intrigue": "Finds a hidden letter revealing a secret affair between two famous musicians, which could scandalize the musical world."
         }
       }
-    },
-
-    "wagon-6": {
-      "player-1": {
+    ]
+  },
+  {
+    "wagonId": "wagon-6",
+    "players": [
+      {
+        "playerId": "player-1",
         "profile": {
           "name": "Leo 'Roar' Johnson",
           "age": 42,
@@ -228,7 +262,8 @@
           "mystery_intrigue": "Possesses a rare, antique saxophone with engravings of a mysterious jungle creature, hinting at a hidden treasure deep within the rainforest."
         }
       },
-      "player-2": {
+      {
+        "playerId": "player-2",
         "profile": {
           "name": "Lila 'Nightingale' Silva",
           "age": 35,
@@ -238,7 +273,8 @@
           "mystery_intrigue": "Discovers an old map leading to a legendary jungle temple, guarded by a mythical beast, but keeps the map's existence a secret."
         }
       },
-      "player-3": {
+      {
+        "playerId": "player-3",
         "profile": {
           "name": "Rafael 'Panther' Martinez",
           "age": 38,
@@ -248,7 +284,8 @@
           "mystery_intrigue": "Receives mysterious drum patterns in his dreams, which he believes are clues to an ancient jungle ritual, but fears the consequences of unleashing its power."
         }
       },
-      "player-4": {
+      {
+        "playerId": "player-4",
         "profile": {
           "name": "Elena 'Jaguar' Rodriguez",
           "age": 30,
@@ -258,10 +295,13 @@
           "mystery_intrigue": "Finds a hidden journal detailing a legendary jungle expedition, but the journal's warnings of a dangerous predator make her hesitant to reveal its contents."
         }
       }
-    },
-
-    "wagon-7": {
-      "player-1": {
+    ]
+  },
+  {
+    "wagonId": "wagon-7",
+    "players": [
+      {
+        "playerId": "player-1",
         "profile": {
           "name": "Marco Valentino",
           "age": 48,
@@ -271,7 +311,8 @@
           "mystery_intrigue": "Haunted by a past betrayal that deepened the feud, seeks revenge while hiding a secret that could unite the families."
         }
       },
-      "player-2": {
+      {
+        "playerId": "player-2",
         "profile": {
           "name": "Giovanna Rosalia",
           "age": 42,
@@ -281,7 +322,8 @@
           "mystery_intrigue": "Discovers an old love letter hinting at a forbidden romance between members of the rival families, but struggles with the implications of revealing it."
         }
       },
-      "player-3": {
+      {
+        "playerId": "player-3",
         "profile": {
           "name": "Father Lorenzo",
           "age": 50,
@@ -291,7 +333,8 @@
           "mystery_intrigue": "Knows of a hidden sanctuary where the lovers can meet, but fears the consequences of defying the powerful families."
         }
       },
-      "player-4": {
+      {
+        "playerId": "player-4",
         "profile": {
           "name": "Luca Montefiori",
           "age": 35,
@@ -301,10 +344,13 @@
           "mystery_intrigue": "Uncovers a plot to sabotage the upcoming wedding, which could reignite the feud and plunge the city into chaos."
         }
       }
-    },
-
-    "wagon-8": {
-      "player-1": {
+    ]
+  },
+  {
+    "wagonId": "wagon-8",
+    "players": [
+      {
+        "playerId": "player-1",
         "profile": {
           "name": "Eleanor Voss",
           "age": 38,
@@ -314,7 +360,8 @@
           "mystery_intrigue": "Discovers hidden recordings on an old cylinder that hint at a secret society communicating through coded messages."
         }
       },
-      "player-2": {
+      {
+        "playerId": "player-2",
         "profile": {
           "name": "Theodore Kane",
           "age": 42,
@@ -324,7 +371,8 @@
           "mystery_intrigue": "Finds blueprints for an advanced device that can record and play back voices with unprecedented clarity, but the inventor's identity remains a mystery."
         }
       },
-      "player-3": {
+      {
+        "playerId": "player-3",
         "profile": {
           "name": "Victoria Sterling",
           "age": 35,
@@ -334,7 +382,8 @@
           "mystery_intrigue": "Receives anonymous letters containing cryptic messages and musical notes, hinting at a hidden melody with mysterious powers."
         }
       },
-      "player-4": {
+      {
+        "playerId": "player-4",
         "profile": {
           "name": "Edgar Grey",
           "age": 40,
@@ -344,6 +393,6 @@
           "mystery_intrigue": "Uncovers a plot to steal advanced sound recording technology, but struggles to identify the mastermind behind the scheme."
         }
       }
-    }
+    ]
   }
-}
+]

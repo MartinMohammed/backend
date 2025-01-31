@@ -24,26 +24,6 @@ def load_json_file(file_path: str) -> dict:
         return {}
 
 
-def filter_player_info(complete_info: dict, properties: List[str] = None) -> dict:
-    if not properties:
-        logger.debug("No properties filter applied")
-        return complete_info
-
-    filtered_info = {}
-    # Add the id to the filtered info
-    filtered_info["id"] = complete_info["id"]
-    valid_properties = {"profile", "name_info"}
-
-    logger.info(f"Filtering properties: {properties}")
-    for prop in properties:
-        if prop in valid_properties and prop in complete_info:
-            filtered_info[prop] = complete_info[prop]
-        else:
-            logger.warning(f"Invalid or missing property requested: {prop}")
-
-    return filtered_info
-
-
 @router.get("/api/players/{session_id}/{wagon_id}/{player_id}")
 async def get_player_info(
     session_id: str,
@@ -67,30 +47,48 @@ async def get_player_info(
         
         # Load data based on default_game flag
         names, player_details, _ = FileManager.load_session_data(session_id, session.default_game)
+        # try to convert the wagon_id to an integer if it is not already an integer 
+        try:
+            wagon_index = int(wagon_id.split("-")[1])
+        except ValueError:
+            logger.error(f"Invalid wagon_id: {wagon_id}")
+            raise HTTPException(status_code=404, detail="Invalid wagon_id")
         
         try:
             # First check if player_details is contained in the loaded data
-            if "player_details" not in player_details:
+            if  len(player_details) == 0:
                 logger.error("Missing 'player_details' key in loaded data")
                 raise HTTPException(status_code=404, detail="Player details not found")
             
-            player_info = player_details["player_details"][wagon_id][player_id]
+            # players is a list of dictionaries, so we need to filter the list for the player_id    
+            player_info = next((player for player in player_details[wagon_index]["players"] if player["playerId"] == player_id), None)
+            # check if player_info is found
+            if player_info is None:
+                logger.error(f"Player info not found | wagon: {wagon_id} | player: {player_id}")
+                raise HTTPException(status_code=404, detail="Player info not found")
+            
             logger.debug(
                 f"Found player info | wagon: {wagon_id} | player: {player_id} | profile_exists: {'profile' in player_info}"
             )
 
             # first check if names is contained in the loaded data
-            if "names" not in names:
+            if len(names) == 0:
                 logger.error("Missing 'names' key in loaded data")
                 raise HTTPException(status_code=404, detail="Names not found")
             
-            name_info = names["names"][wagon_id][player_id]
+            # "players" is a list of dictionaries, so we need to filter the list for the player_id  
+            name_info = next((player for player in names[wagon_index]["players"] if player["playerId"] == player_id), None)
+            # check if name_info is found
+            if name_info is None:
+                logger.error(f"Name info not found | wagon: {wagon_id} | player: {player_id}")
+                raise HTTPException(status_code=404, detail="Name info not found")
+            
             logger.debug(
-                f"Found name info | wagon: wagon_id | player: player_id"
+                f"Found name info | wagon: {wagon_id} | player: {player_id}"
             )
             
             # Combine information
-            complete_player_info = {
+            player_in_current_wagon_info = {
                 "id": player_id,
                 "name_info": name_info,
                 "profile": player_info.get("profile", {})
@@ -99,12 +97,11 @@ async def get_player_info(
             # Filter properties if specified
             if properties:
                 logger.info(
-                    f"Filtering player info | requested_properties: {properties} | available_properties: {list(complete_player_info.keys())}"
+                    f"Filtering player info | requested_properties: {properties} | available_properties: {list(player_in_current_wagon_info.keys())}"
                 )
-                return filter_player_info(complete_player_info, properties)
             
             logger.info("Successfully retrieved complete player info")
-            return complete_player_info
+            return player_in_current_wagon_info
             
         except KeyError as e:
             logger.error(
@@ -141,38 +138,55 @@ async def get_wagon_players(
     logger.debug(
         f"Loading session data | session_id={session_id} | default_game={session.default_game}"
     )
+
+    # try catch for wagon_index
+    try:
+        wagon_index = int(wagon_id.split("-")[1])
+    except ValueError:
+        logger.error(f"Invalid wagon_id: {wagon_id}")
+        raise HTTPException(status_code=404, detail="Invalid wagon_id")
+
+    wagon_index = int(wagon_id.split("-")[1])
     
     try:
         # Load data based on default_game flag
         names, player_details, _ = FileManager.load_session_data(session_id, session.default_game)
         
-        # First check if player_details is contained in the loaded data
-        if "player_details" not in player_details:
-            logger.error("Missing 'player_details' key in loaded data")
+        if len(player_details) == 0:
+            # check if player_details is contained in the loaded data
+            logger.error("player_details is empty")
             raise HTTPException(status_code=404, detail="Player details not found")
         
-        # Check if wagon exists in player_details
-        if wagon_id not in player_details["player_details"]:
-            logger.error(f"Wagon not found | wagon_id={wagon_id}")
-            raise HTTPException(status_code=404, detail="Wagon not found")
+        # Check if player details exists for the wagon_index
+        # should check whether None or empty list
+        if not player_details[wagon_index]["players"]:
+            logger.error(f"Player details not found for wagon_index={wagon_index}")
+            raise HTTPException(status_code=404, detail="Player details not found")
             
-        player_info = player_details["player_details"][wagon_id]
-        logger.debug(f"Found player info | wagon={wagon_id} | player_count={len(player_info)}")
+        players_in_current_wagon = player_details[wagon_index]["players"]
+        logger.debug(f"Found player info | wagon={wagon_id} | player_count={len(players_in_current_wagon)}")
 
-        # Check if names data exists and is valid
-        if "names" not in names:
-            logger.error("Missing 'names' key in loaded data")
+        # check if names is contained in the loaded data
+        if len(names) == 0:
+            logger.error("names is empty")
             raise HTTPException(status_code=404, detail="Names not found")
-            
-        if wagon_id not in names["names"]:
-            logger.error(f"Wagon names not found | wagon_id={wagon_id}")
-            raise HTTPException(status_code=404, detail="Wagon names not found")
-            
-        name_info = names["names"][wagon_id]
-        logger.debug(f"Found name info | wagon={wagon_id} | name_count={len(name_info)}")
-            
+        
+        names_in_current_wagon = names[wagon_index]
+        logger.debug(f"Found name info | wagon={wagon_id} | name_count={len(names_in_current_wagon)}")
+        
+        # Create dictionaries for quick lookup by player ID
+        name_info = {
+            player["playerId"]: player 
+            for player in names_in_current_wagon["players"]
+        }
+        
+        player_info = {
+            player["playerId"]: player
+            for player in players_in_current_wagon
+        }
+
         # Combine information for all players in the wagon
-        players_info = []
+        players_in_current_wagon_info = []
         for player_id in player_info:
             logger.debug(f"Processing player | wagon={wagon_id} | player={player_id}")
             complete_info = {
@@ -180,11 +194,10 @@ async def get_wagon_players(
                 "name_info": name_info.get(player_id, {}),
                 "profile": player_info[player_id].get("profile", {})
             }
-            filtered_info = filter_player_info(complete_info, properties)
-            players_info.append(filtered_info)
+            players_in_current_wagon_info.append(complete_info)
 
-        logger.info(f"Successfully retrieved all players | wagon={wagon_id} | player_count={len(players_info)}")
-        return {"players": players_info}
+        logger.info(f"Successfully retrieved all players | wagon={wagon_id} | player_count={len(players_in_current_wagon_info)}")
+        return {"players": players_in_current_wagon_info}
             
     except FileNotFoundError as e:
         logger.error(f"Failed to load session data | error={str(e)} | session_id={session_id}")

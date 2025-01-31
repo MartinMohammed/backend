@@ -1,4 +1,8 @@
+from typing import Dict, List, Tuple
 import random
+from app.core.logging import get_logger
+
+logger = get_logger("convert")
 
 def parse_name(full_name):
     """
@@ -31,7 +35,8 @@ def infer_sex_from_model(model_type):
     else:
         return 'unknown'
 
-def convert_wagon_to_three_jsons(wagon_data):
+# triggered for one single wagon 
+def convert_wagon_to_three_jsons(wagon_data: Dict) -> Tuple[Dict, Dict, Dict]:
     """
     Given a single wagon JSON structure like:
     {
@@ -61,101 +66,103 @@ def convert_wagon_to_three_jsons(wagon_data):
     passcode = wagon_data.get("passcode", "no-passcode")
     passengers = wagon_data.get("passengers", [])
 
-    # 1) Build the "names" object for this wagon
-    #    The final structure should be: {"wagon-N": {"player-1": {...}, "player-2": {...}, ...}}
-    names_output = {}
-    wagon_key = f"wagon-{wagon_id}"
-    names_output[wagon_key] = {}
+    logger.debug(f"Processing wagon conversion | wagon_id={wagon_id} | theme={theme} | num_passengers={len(passengers)}")
 
-    # 2) Build the "player_details" object for this wagon
-    #    The final structure: {"wagon-N": {"player-1": { "profile": {...}}, "player-2": {"profile": {...}}}}
-    player_details_output = {}
-    player_details_output[wagon_key] = {}
-
-    # 3) Build the "wagons" array entry for this wagon
-    #    Each wagon in the final output is something like:
-    #    {
-    #      "id": wagon_id,
-    #      "theme": "...",
-    #      "passcode": "...",
-    #      "people": [
-    #         {
-    #           "uid": "wagon-N-player-i",
-    #           "position": [rand, rand],
-    #           "rotation": rand,
-    #           "model_type": "character-female-e",
-    #           "items": []
-    #         }, ...
-    #       ]
-    #    }
-    wagon_entry = {
-        "id": wagon_id,
-        "theme": theme,
-        "passcode": passcode,
-        "people": []
-    }
-
-    # Loop over passengers to fill each part
-    for i, passenger in enumerate(passengers, start=1):
-        player_key = f"player-{i}"
-        full_name = passenger.get("name", "Unknown")
-        first_name, last_name = parse_name(full_name)
-
-        model_type = passenger.get("characer_model", "character-unknown")
-        sex = infer_sex_from_model(model_type)
-
-        # 1) Fill names
-        names_output[wagon_key][player_key] = {
-            "firstName": first_name,
-            "lastName": last_name,
-            "sex": sex,
-            "fullName": full_name
+    try:
+        # 1) Build the "names" object for this wagon
+        names_entry = {
+            "wagonId": f"wagon-{wagon_id}",
+            "players": []
         }
 
-        # 2) Fill player_details
-        profile_dict = {
-            "name": full_name,
-            "age": passenger.get("age", 0),
-            "profession": passenger.get("profession", ""),
-            "personality": passenger.get("personality", ""),
-            "role": passenger.get("role", ""),
-            "mystery_intrigue": passenger.get("mystery_intrigue", "")
-        }
-        player_details_output[wagon_key][player_key] = {
-            "profile": profile_dict
+        # 2) Build the "player_details" object for this wagon
+        player_details_entry = {
+            "wagonId": f"wagon-{wagon_id}",
+            "players": []
         }
 
-        # 3) Fill wagons "people"
-        #    Random position within [0..1], random rotation in [0..1], items always []
-        person_dict = {
-            "uid": f"wagon-{wagon_id}-player-{i}",
-            "position": [round(random.random(), 2), round(random.random(), 2)],
-            "rotation": round(random.random(), 2),
-            "model_type": model_type,
-            "items": []
+        # 3) Build the "wagon" object
+        wagon_entry = {
+            "id": wagon_id,
+            "theme": theme,
+            "passcode": passcode,
+            "people": []
         }
-        wagon_entry["people"].append(person_dict)
 
-    return names_output, player_details_output, wagon_entry
+        # Process each passenger
+        for i, passenger in enumerate(passengers, 1):
+            logger.debug(f"Converting passenger data | wagon_id={wagon_id} | passenger_index={i} | passenger_name={passenger.get('name', 'Unknown')}")
+            
+            player_key = f"player-{i}"
+            name = passenger.get("name", "")
+            
+            # Split name into components
+            name_parts = name.split()
+            first_name = name_parts[0] if name_parts else ""
+            last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+            
+            # Determine sex based on character model
+            model_type = passenger.get("characer_model", "character-male-a")
+            sex = "female" if "female" in model_type else "male"
 
-def convert_and_return_jsons(wagon_data):
-    names_result, player_details_result, wagons_entry = {}, {}, []
-    for wagon in wagon_data:
-        names_output, player_details_output, wagon_entry = convert_wagon_to_three_jsons(wagon)
-        names_result.update(names_output)
-        player_details_result.update(player_details_output)
-        wagons_entry.append(wagon_entry)
+            # Add to names structure
+            names_entry["players"].append({
+                "playerId": player_key,
+                "firstName": first_name,
+                "lastName": last_name,
+                "sex": sex,
+                "fullName": name
+            })
 
-    # 1) The 'names' JSON typically might aggregate multiple wagons, so we embed our single wagon's result:
-    #    For demonstration, just put it as "names": { ...single wagon data... }
-    all_names = {"names": names_result}
+            # Add to player_details structure
+            profile = {
+                "name": name,
+                "age": passenger.get("age", 0),
+                "profession": passenger.get("profession", ""),
+                "personality": passenger.get("personality", ""),
+                "role": passenger.get("role", ""),
+                "mystery_intrigue": passenger.get("mystery_intrigue", "")
+            }
+            player_details_entry["players"].append({"playerId": player_key, "profile": profile})
 
-    # 2) The 'player_details' JSON also might aggregate multiple wagons
-    all_player_details = {"player_details": player_details_result}
+            # Add to wagon people structure
+            person_dict = {
+                "uid": f"wagon-{wagon_id}-player-{i}",
+                "position": [round(random.random(), 2), round(random.random(), 2)],
+                "rotation": round(random.random(), 2),
+                "model_type": model_type,
+                "items": []
+            }
+            wagon_entry["people"].append(person_dict)
 
-    # 3) The 'wagons' JSON is typically an array of wagons. Here, we only have one:
-    all_wagons = {
-        "wagons": wagons_entry
-    }
+        logger.debug(f"Completed wagon conversion | wagon_id={wagon_id} | players_processed={len(passengers)}")
+        return names_entry, player_details_entry, wagon_entry
 
-    return all_names, all_player_details, all_wagons
+    except Exception as e:
+        logger.error(f"Error converting wagon | wagon_id={wagon_id} | error_type={type(e).__name__} | error_msg={str(e)}")
+        raise
+
+def convert_and_return_jsons(wagons_data: List[Dict]) -> Tuple[Dict, Dict, Dict]:
+    """Convert raw wagon data into the three required JSON structures"""
+    logger.info(f"Starting conversion of wagon data | total_wagons={len(wagons_data)}")
+    
+    all_names = []
+    all_player_details = []
+    all_wagons = []
+
+    try:
+        for wagon in wagons_data:
+            logger.debug(f"Converting wagon | wagon_id={wagon['id']} | theme={wagon['theme']} | num_passengers={len(wagon.get('passengers', []))}")
+            
+            names, player_details, wagon_entry = convert_wagon_to_three_jsons(wagon)
+            
+            all_names.append(names)
+            all_player_details.append(player_details)
+            all_wagons.append(wagon_entry)
+
+        logger.info(f"Successfully converted all wagons | total_names={len(all_names)} | total_player_details={len(all_player_details)} | total_wagons={len(all_wagons)}")
+        return all_names, all_player_details, all_wagons
+
+    except Exception as e:
+        logger.error(f"Error converting wagon data | error_type={type(e).__name__} | error_msg={str(e)}")
+        raise

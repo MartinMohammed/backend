@@ -19,14 +19,10 @@ class ChatService(LoggerMixin):
         # Load all available character in every wagon. 
         self.player_details: Dict = self._load_player_details(session)
 
-        if not self.player_details:
-            self.logger.error(
-                "Failed to initialize character details - dictionary is empty"
-            )
+        if len(self.player_details) == 0:
+            self.logger.error("Failed to initialize player details - array is empty")
         else:
-            self.logger.info(
-                f"Loaded character details for wagons: {list(self.player_details.keys())}"
-            )
+            self.logger.info(f"Loaded player details for wagons: {list(self.player_details)}")
 
         # Get the Mistral API key from environment (injected by ECS)
         mistral_api_key = os.getenv("MISTRAL_API_KEY")
@@ -46,21 +42,19 @@ class ChatService(LoggerMixin):
             # Use FileManager to load the default session data
             _, player_details, _ = FileManager.load_session_data(session.session_id, session.default_game)
             
-            if "player_details" not in player_details:
+            if len(player_details) == 0:
                 cls.get_logger().error("Missing 'player_details' key in JSON data")
                 return {}
             
-            details = player_details["player_details"]
-            cls.get_logger().info(
-                f"Successfully loaded character details. Available wagons: {list(details.keys())}"
-            )
-            return details
+            # success for loading player_details
+            cls.get_logger().info(f"Successfully loaded player details.: {list(player_details)}")
+            return player_details
         
         except FileNotFoundError as e:
             cls.get_logger().error(f"Failed to load default player details: {str(e)}")
             return {}
         except Exception as e:
-            cls.get_logger().error(f"Failed to load character details: {str(e)}")
+            cls.get_logger().error(f"Failed to load player details: {str(e)}")
             return {}
 
     def _get_character_context(self, uid: str) -> Optional[Dict]:
@@ -69,35 +63,32 @@ class ChatService(LoggerMixin):
             self.logger.debug(f"Getting character context for uid: {uid}")
             # "wagon-<i>-player-<k>"
             uid_splitted = uid.split("-")
+            # try catch for wagon_index 
+            try:
+                wagon_index = int(uid_splitted[1])
+            except ValueError:
+                self.logger.error(f"Invalid wagon index | uid: {uid} | wagon_index: {uid_splitted[1]}")
+                return None
+            
             wagon_key, player_key = (
-                f"wagon-{uid_splitted[1]}",
+                f"wagon-{wagon_index}",
                 f"player-{uid_splitted[3]}",
             )
 
             # check if the wagon key exists
-            if wagon_key not in self.player_details:
-                self.logger.error(
-                    f"Wagon {wagon_key} not found in character details. Available wagons: {list(self.player_details.keys())}"
-                )
+            if len(self.player_details) == 0:
+                self.logger.error("Wagon not found in player details")
                 return None
 
-            # check if the player key exists
-            if player_key not in self.player_details[wagon_key]:
-                self.logger.error(
-                    f"Player {player_key} not found in wagon {wagon_key}. Available players: {list(self.player_details[wagon_key].keys())}"
-                )
-                return None
+            # find specific player details
+            specific_player_detais = next((player for player in self.player_details[wagon_index]["players"] if player["playerId"] == player_key), None)
 
-            # get the details of the player that belongs to the wagon
-            character = self.player_details[wagon_key][player_key]
             self.logger.debug(
-                f"Retrieved character context | uid: {uid} | wagon: {wagon_key} | player: {player_key} | profession: {character['profile']['profession']}"
+                f"Retrieved player context | uid: {uid} | wagon: {wagon_key} | player: {player_key} | profession: {specific_player_detais['profile']['profession']}"
             )
-            return character
+            return specific_player_detais
         except (KeyError, IndexError) as e:
-            self.logger.error(
-                f"Failed to get character context: {str(e)} | uid: {uid} | error: {str(e)} | player_details_keys: {list(self.player_details.keys()) if self.player_details else None}"
-            )
+            self.logger.error(f"Failed to get character context: {str(e)} | uid: {uid} | error: {str(e)} | player_details_keys: {list(self.player_details) if self.player_details else None}")
             return None
 
     def _create_character_prompt(self, character: Dict) -> str:

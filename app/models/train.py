@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict
+from typing import List
 
 class PassengerProfile(BaseModel):
     name: str
@@ -10,12 +10,14 @@ class PassengerProfile(BaseModel):
     mystery_intrigue: str
 
 class PlayerName(BaseModel):
+    playerId: str
     firstName: str
     lastName: str
     sex: str
     fullName: str
 
 class PlayerDetails(BaseModel):
+    playerId: str
     profile: PassengerProfile
 
 class Person(BaseModel):
@@ -31,16 +33,19 @@ class Wagon(BaseModel):
     passcode: str
     people: List[Person]
 
-class Names(BaseModel):
-    names: Dict[str, Dict[str, PlayerName]]
+class WagonNames(BaseModel):
+    wagonId: str
+    players: List[PlayerName]
 
-class PlayerDetailsResponse(BaseModel):
-    player_details: Dict[str, Dict[str, PlayerDetails]]
+class WagonPlayerDetails(BaseModel):
+    wagonId: str
+    players: List[PlayerDetails]
+
 
 class WagonsResponse(BaseModel):
     wagons: List[Wagon]
 
 class GenerateTrainResponse(BaseModel):
-    names: Names
-    player_details: PlayerDetailsResponse
-    wagons: WagonsResponse 
+    names: List[WagonNames]
+    player_details: List[WagonPlayerDetails]
+    wagons: List[Wagon]

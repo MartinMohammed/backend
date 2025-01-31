@@ -198,8 +198,7 @@ class SessionService(LoggerMixin):
             # Load data based on default_game flag
             cls.get_logger().debug(f"Loading session data | session_id={session_id} | default_game={session.default_game}")
             next_wagon_id = current_wagon_id + 1
-            _, _, wagons_data = FileManager.load_session_data(session_id, session.default_game)
-            wagons = wagons_data["wagons"]
+            _, _, wagons = FileManager.load_session_data(session_id, session.default_game)
             max_wagons = len(wagons)
 
              # Check if we're at the last wagon

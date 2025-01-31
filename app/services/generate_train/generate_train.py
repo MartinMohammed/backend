@@ -3,10 +3,9 @@ import os
 import json
 import random
 from fastapi import HTTPException
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, List
 from app.core.logging import LoggerMixin
 from app.services.generate_train.convert import convert_and_return_jsons
-from app.core.logging import get_logger
 
 
 class GenerateTrainService(LoggerMixin):
@@ -32,17 +31,21 @@ class GenerateTrainService(LoggerMixin):
             self.logger.error(f"Invalid number of wagons requested: {num_wagons}")
             return "Please provide a valid number of wagons (1-10)."
 
-    # Prompt Mistral API to generate a theme and passcodes
+        # Prompt Mistral API to generate a theme and passcodes
         prompt = f"""
         This is a video game about a player trying to reach the locomotive of a train by finding a passcode for each wagon.
         You are tasked with generating unique passcodes for the wagons based on the theme '{theme}', to make the game more engaging, fun, and with a sense of progression.
+        You are tasked with generating unique passcodes for the wagons based on the theme '{theme}', 
+        to make the game more engaging, fun, and with a sense of progression, from easiest to hardest.
         Each password should be unique enough to not be related to each other but still be connected to the theme.
         Generate {num_wagons} unique and creative passcodes for the wagons. Each passcode must:
+        Generate exactly {num_wagons} unique and creative passcodes for the wagons. Each passcode must:
         1. Be related to the theme.
         2. Be unique, interesting, and creative.
         3. In one word, letters only (no spaces or special characters).
         No explanation needed, just the theme and passcodes in a JSON object format.
         Example:
+        Example for the theme "Pirates" and 5 passcodes:
         {{
             "theme": "Pirates",
             "passcodes": ["Treasure", "Rum", "Skull", "Compass", "Anchor"]
@@ -195,84 +198,45 @@ class GenerateTrainService(LoggerMixin):
             self.logger.error(f"Error in generate_train_json: {e}")
             raise ValueError(f"Failed to generate train: {str(e)}")
 
-    def generate_train(self, theme: str, num_wagons: int) -> Tuple[Dict, Dict, Dict]:
+    def generate_train(self, theme: str, num_wagons: int) -> Tuple[List, List, List]:
         """Main method to generate complete train data"""
-        self.logger.info(
-            "Starting train generation",
-            extra={
-                "theme": theme,
-                "num_wagons": num_wagons,
-                "service": "GenerateTrainService"
-            }
-        )
+        self.logger.info(f"Starting train generation | theme={theme} | num_wagons={num_wagons} | service=GenerateTrainService")
         
         try:
             # Log attempt to generate train JSON
-            self.logger.debug(
-                "Generating train JSON",
-                extra={
-                    "theme": theme,
-                    "num_wagons": num_wagons,
-                    "min_passengers": 2,
-                    "max_passengers": 10
-                }
-            )
+            self.logger.debug(f"Generating train JSON | theme={theme} | num_wagons={num_wagons} | min_passengers=2 | max_passengers=10")
             
             wagons_json = self.generate_train_json(theme, num_wagons, 2, 10)
             
             # Log successful JSON generation and parse attempt
-            self.logger.debug(
-                "Train JSON generated, parsing to dict",
-                extra={
-                    "json_length": len(wagons_json)
-                }
-            )
+            self.logger.debug(f"Train JSON generated, parsing to dict | json_length={len(wagons_json)}")
             
             wagons = json.loads(wagons_json)
             
             # Log conversion attempt
-            self.logger.debug(
-                "Converting wagon data to final format",
-                extra={
-                    "num_wagons": len(wagons)
-                }
-            )
+            self.logger.debug(f"Converting wagon data to final format | num_wagons={len(wagons)}")
             
             all_names, all_player_details, all_wagons = convert_and_return_jsons(wagons)
             
             # Log successful generation with summary
             self.logger.info(
-                "Train generation completed successfully",
-                extra={
-                    "theme": theme,
-                    "total_wagons": len(all_wagons["wagons"]),
-                    "total_names": len(all_names["names"]),
-                    "total_player_details": len(all_player_details["player_details"])
-                }
+                f"Train generation completed successfully | theme={theme} | "
+                f"total_wagons={len(all_wagons)} | total_names={len(all_names)} | "
+                f"total_player_details={len(all_player_details)}"
             )
             
             return all_names, all_player_details, all_wagons
 
         except json.JSONDecodeError as e:
             self.logger.error(
-                "JSON parsing error in generate_train",
-                extra={
-                    "error_type": "JSONDecodeError",
-                    "error_msg": str(e),
-                    "theme": theme,
-                    "num_wagons": num_wagons
-                }
+                f"JSON parsing error in generate_train | error_type=JSONDecodeError | "
+                f"error_msg={str(e)} | theme={theme} | num_wagons={num_wagons}"
             )
             raise HTTPException(status_code=500, detail=f"Failed to parse train JSON: {str(e)}")
         
         except Exception as e:
             self.logger.error(
-                "Error in generate_train",
-                extra={
-                    "error_type": type(e).__name__,
-                    "error_msg": str(e),
-                    "theme": theme,
-                    "num_wagons": num_wagons
-                }
+                f"Error in generate_train | error_type={type(e).__name__} | "
+                f"error_msg={str(e)} | theme={theme} | num_wagons={num_wagons}"
             )
             raise HTTPException(status_code=500, detail=f"Failed to generate train: {str(e)}")
