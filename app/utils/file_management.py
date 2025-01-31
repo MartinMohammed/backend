@@ -49,7 +49,6 @@ class FileManager(LoggerMixin):
     def load_session_data(cls, session_id: str, default_game: bool = True) -> tuple[Dict, Dict, Dict]:
         """Load all data files for a session"""
         data_dir = cls.get_data_directory(session_id, default_game)
-        print("Data directory: ", data_dir)
         if not data_dir.exists():
             cls.get_logger().error(f"Data directory not found: {data_dir}")
             raise FileNotFoundError(f"No data found for session {session_id}")
@@ -66,7 +65,6 @@ class FileManager(LoggerMixin):
                     "directory": str(data_dir)
                 }
             )
-            print(player_details, "jasjdfjasdfjasjdfjsa")
             return names, player_details, wagons
             
         except FileNotFoundError as e:

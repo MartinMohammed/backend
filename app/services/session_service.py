@@ -9,6 +9,7 @@ from app.models.session import (
 )
 from app.core.logging import LoggerMixin
 import uuid
+from app.utils.file_management import FileManager
 
 
 # used as dependency injection for the session service
@@ -182,37 +183,70 @@ class SessionService(LoggerMixin):
     @classmethod
     def advance_wagon(cls, session_id: str) -> bool:
         """Advance to the next wagon"""
+        cls.get_logger().info(f"Attempting to advance wagon | session_id={session_id}")
+        
+        # Get current session
         session = cls.get_session(session_id)
         if not session:
+            cls.get_logger().error(f"Failed to advance wagon - session not found | session_id={session_id}")
+            return False
+
+        current_wagon_id = session.current_wagon.wagon_id
+        cls.get_logger().debug(f"Current wagon state | session_id={session_id} | current_wagon_id={current_wagon_id}")
+
+        try: 
+            # Load data based on default_game flag
+            cls.get_logger().debug(f"Loading session data | session_id={session_id} | default_game={session.default_game}")
+            next_wagon_id = current_wagon_id + 1
+            _, _, wagons_data = FileManager.load_session_data(session_id, session.default_game)
+            wagons = wagons_data["wagons"]
+            max_wagons = len(wagons)
+
+             # Check if we're at the last wagon
+            if next_wagon_id > max_wagons - 1:
+                cls.get_logger().warning(
+                    f"Cannot advance - already at last wagon | session_id={session_id} | current_wagon={current_wagon_id} | max_wagons={max_wagons}"
+                )
+                raise Exception("Cannot advance - already at last wagon")
+            
+            cls.get_logger().debug(
+                f"Wagon progression details | session_id={session_id} | current_wagon={current_wagon_id} | next_wagon={next_wagon_id} | max_wagons={max_wagons}"
+            )
+
+            # Load current wagon data for the next wagon setup
+            current_wagon = wagons[next_wagon_id]
+            
+            # Set up next wagon
+            session.current_wagon = WagonProgress(
+                wagon_id=next_wagon_id,
+                theme=current_wagon["theme"],
+                password=current_wagon["passcode"],
+            )
+
+            # Reset guessing progress for new wagon
+            session.guessing_progress = GuessingProgress()
+            cls.update_session(session)
+
+            cls.get_logger().info(
+                f"Successfully advanced to next wagon | session_id={session_id} | previous_wagon={current_wagon_id} | new_wagon={next_wagon_id} | theme={current_wagon['theme']}"
+            )
+            return True
+
+        except FileNotFoundError as e:
             cls.get_logger().error(
-                f"Failed to advance wagon - session not found | session_id: {session_id}"
+                f"Failed to load session data | session_id={session_id} | error={str(e)} | error_type=FileNotFoundError"
             )
             return False
-
-        # advance to the next wagon
-        next_wagon_id = session.current_wagon.wagon_id + 1
-        # check if we are out of bounds
-        if next_wagon_id > 2:  # Assuming max_wagon_id is 2 for this example
-            cls.get_logger().warning(
-                f"Cannot advance - already at last wagon | session_id: {session_id} | current_wagon: {session.current_wagon.wagon_id}"
+        except KeyError as e:
+            cls.get_logger().error(
+                f"Invalid wagon data structure | session_id={session_id} | error={str(e)} | error_type=KeyError"
             )
             return False
-
-        # Set up next wagon
-        session.current_wagon = WagonProgress(
-            wagon_id=next_wagon_id,
-            theme="New Theme",
-            password="New Passcode",
-        )
-
-        # Clean up the previous guesses
-        session.guessing_progress = GuessingProgress()
-        cls.update_session(session)
-
-        cls.get_logger().info(
-            f"Advanced to next wagon | session_id: {session_id} | new_wagon: {next_wagon_id}"
-        )
-        return True
+        except Exception as e:
+            cls.get_logger().error(
+                f"Unexpected error during wagon advancement | session_id={session_id} | error={str(e)} | error_type={type(e).__name__}"
+            )
+            return False
 
     @classmethod
     def cleanup_old_sessions(cls, max_age_hours: int = 24) -> None:

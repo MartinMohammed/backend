@@ -47,12 +47,10 @@ class ChatService(LoggerMixin):
             _, player_details, _ = FileManager.load_session_data(session.session_id, session.default_game)
             
             if "player_details" not in player_details:
-                print("Missing 'player_details' key in JSON data")
                 cls.get_logger().error("Missing 'player_details' key in JSON data")
                 return {}
             
             details = player_details["player_details"]
-            print(f"Loaded character details: {details}")
             cls.get_logger().info(
                 f"Successfully loaded character details. Available wagons: {list(details.keys())}"
             )
@@ -77,7 +75,6 @@ class ChatService(LoggerMixin):
             )
 
             # check if the wagon key exists
-            print(self.player_details, "player_details")
             if wagon_key not in self.player_details:
                 self.logger.error(
                     f"Wagon {wagon_key} not found in character details. Available wagons: {list(self.player_details.keys())}"

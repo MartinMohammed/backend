@@ -84,13 +84,10 @@ async def get_player_info(
                 logger.error("Missing 'names' key in loaded data")
                 raise HTTPException(status_code=404, detail="Names not found")
             
-            print("I was also here", names["names"][wagon_id][player_id])
             name_info = names["names"][wagon_id][player_id]
             logger.debug(
                 f"Found name info | wagon: wagon_id | player: player_id"
             )
-
-            print("I was here", player_info, name_info)
             
             # Combine information
             complete_player_info = {
