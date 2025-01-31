@@ -74,13 +74,14 @@ class GenerateTrainService(LoggerMixin):
             self.logger.error(f"Error generating passcodes: {e}")
             return f"Error generating passcodes: {str(e)}"
 
-    def generate_passengers_for_wagon(self, passcode: str, num_passengers: int) -> list[Dict[str, Any]]:
+    def generate_passengers_for_wagon(self, theme: str, passcode: str, num_passengers: int) -> list[Dict[str, Any]]:
         """Generate passengers for a wagon using Mistral AI"""
-        self.logger.info(f"Generating {num_passengers} passengers for wagon with passcode: {passcode}")
+        self.logger.info(f"Generating {num_passengers} passengers for wagon with passcode: {passcode} and theme: {theme}")
 
          # Generate passengers with the Mistral API
         prompt = f"""
         Passengers are in a wagon. The player can interact with them to learn more about their stories.
+        The passengers live in the world of the theme "{theme}" and their stories are connected to the passcode "{passcode}".
         The following is a list of passengers on a train wagon. The wagon is protected by the passcode "{passcode}".
         Their stories are intertwined, and each passenger has a unique role and mystery, all related to the theme and the passcode.
         The player must be able to guess the passcode by talking to the passengers and uncovering their secrets.
@@ -113,7 +114,6 @@ class GenerateTrainService(LoggerMixin):
         - character-male-e: Brown-haired man with glasses, wearing a white lab coat and a yellow tool belt (scientist, mechanic, or engineer).
         - character-male-f: Dark-haired young man with a mustache, wearing a green vest and brown pants (possibly an explorer, traveler, or adventurer).
         Generate {num_passengers} passengers in JSON array format. Example:
-
         [
             {{
                 "name": "Victor Sterling",
@@ -134,7 +134,6 @@ class GenerateTrainService(LoggerMixin):
                 "characer_model": "character-female-f"
             }}
         ]
-
         Now generate the JSON array:
         """
         response = self.client.chat.complete(
@@ -184,7 +183,7 @@ class GenerateTrainService(LoggerMixin):
             })
             for i, passcode in enumerate(passcodes):
                 num_passengers = random.randint(min_passengers, max_passengers)
-                passengers = self.generate_passengers_for_wagon(passcode, num_passengers)
+                passengers = self.generate_passengers_for_wagon(theme, passcode, num_passengers)
                   # Check if passengers is a string (error message)
                 if isinstance(passengers, str):
                     self.logger.error(f"Error generating passengers: {passengers}")
