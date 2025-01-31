@@ -162,7 +162,7 @@ async def chat_with_character(
     if not conversation:
         raise HTTPException(status_code=500, detail="Failed to process message")
 
-    ai_response = chat_service.generate_response(uid, conversation)
+    ai_response = chat_service.generate_response(uid, session.current_wagon.theme, conversation)
     if not ai_response:
         raise HTTPException(status_code=500, detail="Failed to generate response")
 

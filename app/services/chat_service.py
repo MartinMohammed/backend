@@ -91,7 +91,7 @@ class ChatService(LoggerMixin):
             self.logger.error(f"Failed to get character context: {str(e)} | uid: {uid} | error: {str(e)} | player_details_keys: {list(self.player_details) if self.player_details else None}")
             return None
 
-    def _create_character_prompt(self, character: Dict) -> str:
+    def _create_character_prompt(self, theme: str, character: Dict) -> str:
         """Create a prompt that describes the character's personality and context"""
         occupation = character["profile"]["profession"]
         personality = character["profile"]["personality"]
@@ -100,7 +100,8 @@ class ChatService(LoggerMixin):
         name = character["profile"]["name"]
 
         prompt = f"""
-        You are an NPC in a fictional world. Your name is {name}, and you are a {occupation} by trade. 
+        You are an NPC in a fictional world set in the theme of {theme}. You are part of this theme's story and lore.
+        Your name is {name}, and you are a {occupation}.
         Your role in the story is {role}, and you have a mysterious secret tied to you: {mystery}. Your personality is {personality}, 
         which influences how you speak, act, and interact with others. Stay in character at all times, 
         and respond to the player based on your occupation, role, mystery, and personality.
@@ -116,7 +117,7 @@ class ChatService(LoggerMixin):
 
         return prompt
 
-    def generate_response(self, uid: str, conversation: Conversation) -> Optional[str]:
+    def generate_response(self, uid: str, theme: str, conversation: Conversation) -> Optional[str]:
         """Generate a response using Mistral AI based on character profile"""
         self.logger.info(f"Generating response for uid: {uid}")
         character = self._get_character_context(uid)
@@ -129,7 +130,7 @@ class ChatService(LoggerMixin):
 
         try:
             # Create the system prompt with character context
-            system_prompt = self._create_character_prompt(character)
+            system_prompt = self._create_character_prompt(theme, character)
 
             # Convert conversation history to Mistral AI format
             messages = [{"role": "system", "content": system_prompt}]
