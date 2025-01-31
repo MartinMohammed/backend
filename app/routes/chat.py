@@ -165,14 +165,16 @@ async def chat_with_character(
     if not ai_response:
         raise HTTPException(status_code=500, detail="Failed to generate response")
 
-    # Generate audio from the response
-    try:
-        audio_bytes = tts_service.convert_text_to_speech(ai_response)
-        audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
-    except Exception as e:
-        logger.error(f"Failed to generate audio: {str(e)}")
-        # Continue with text response even if audio fails
-        audio_base64 = ""
+    # # Generate audio from the response
+    # try:
+    #     audio_bytes = tts_service.convert_text_to_speech(ai_response)
+    #     audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+    # except Exception as e:
+    #     logger.error(f"Failed to generate audio: {str(e)}")
+    #     # Continue with text response even if audio fails
+    #     audio_base64 = ""
+
+    audio_base64 = ""
 
     # Add AI response to conversation
     ai_message = Message(role="assistant", content=ai_response)
