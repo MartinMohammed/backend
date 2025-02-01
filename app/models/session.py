@@ -34,6 +34,7 @@ class UserSession(BaseModel):
     guessing_progress: GuessingProgress = Field(default_factory=GuessingProgress)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     last_active: datetime = Field(default_factory=datetime.utcnow)
+    default_game: bool = Field(default=True)
 
     class Config:
         json_schema_extra = {
